@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VÍNCULOS — Panel Judicial</title>
+
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --navy:    #1A3A5C;
+  --navy2:   #0F2540;
+  --navy3:   #152d47;
+  --gold:    #C8A84B;
+  --gold2:   #E8C86A;
+  --cream:   #F7F4EE;
+  --paper:   #FDFBF7;
+  --ink:     #1C1C1E;
+  --ink2:    #444;
+  --muted:   #888;
+  --border:  #DDD8CE;
+  --green:   #1A6B3A;
+  --green-bg:#E8F5EE;
+  --red:     #8B1A1A;
+  --red-bg:  #FAEAEA;
+  --amber:   #7A4F1A;
+  --amber-bg:#FDF3E3;
+  --shadow:  0 2px 16px rgba(26,58,92,.10);
+  --shadow2: 0 8px 32px rgba(26,58,92,.16);
+  --r: 10px;
+}
+
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #0F2540; color: var(--ink); min-height: 100vh; }
+
+/* ── LOGIN ── */
+#login-screen {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  background: var(--navy2); position: relative; overflow: hidden;
+}
+#login-screen::before {
+  content:''; position:absolute; width:500px; height:500px; border-radius:50%;
+  background: radial-gradient(circle, rgba(200,168,75,.15) 0%, transparent 70%);
+  top:-150px; right:-100px;
+}
+.login-card {
+  background: var(--paper); border-radius: 16px; padding: 48px;
+  width:100%; max-width:400px; box-shadow: 0 24px 64px rgba(0,0,0,.4);
+  position:relative; z-index:1; animation: fadeUp .4s ease both;
+}
+@keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+.login-escudo {
+  width:60px; height:60px; background:var(--navy); border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  font-size:26px; margin: 0 auto 16px;
+}
+.login-marca { font-family:Georgia,'Times New Roman',serif; font-size:32px; font-weight:600; color:var(--navy); text-align:center; }
+.login-sub { font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.12em; text-align:center; margin-bottom:8px; }
+.login-rol { font-size:12px; color:var(--navy); font-weight:600; text-align:center; margin-bottom:28px; background:rgba(26,58,92,.08); padding:6px 12px; border-radius:20px; display:inline-block; width:100%; }
+.field { margin-bottom:14px; }
+.field label { display:block; font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.08em; margin-bottom:5px; }
+.field input { width:100%; padding:11px 14px; border:1.5px solid var(--border); border-radius:var(--r); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; font-size:15px; outline:none; background:var(--cream); transition:border-color .2s; }
+.field input:focus { border-color:var(--navy); background:white; }
+.btn-primary { width:100%; padding:13px; background:var(--navy); color:white; border:none; border-radius:var(--r); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; font-size:15px; font-weight:600; cursor:pointer; transition:background .2s; margin-top:6px; }
+.btn-primary:hover { background:var(--navy2); }
+.demo-chips { display:flex; gap:8px; margin-top:14px; }
+.demo-chip { flex:1; padding:8px; background:var(--cream); border:1px solid var(--border); border-radius:8px; font-size:11px; color:var(--navy); cursor:pointer; text-align:center; transition:background .15s; font-weight:500; line-height:1.4; }
+.demo-chip:hover { background:var(--border); }
+
+/* ── SHELL ── */
+#app { display:none; min-height:100vh; background:#F0EDE6; }
+
+.sidebar {
+  width:260px; background:var(--navy2); position:fixed; top:0; left:0; bottom:0;
+  display:flex; flex-direction:column; z-index:50; overflow:hidden;
+}
+.sidebar-brand {
+  padding:20px 20px 16px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+}
+.sidebar-marca { font-family:Georgia,'Times New Roman',serif; font-size:22px; font-weight:600; color:white; }
+.sidebar-sub { font-size:10px; color:rgba(255,255,255,.4); text-transform:uppercase; letter-spacing:.12em; margin-top:2px; }
+.sidebar-juzgado { font-size:11px; color:var(--gold2); font-weight:600; margin-top:6px; }
+
+.sidebar-user {
+  padding:14px 20px;
+  border-bottom:1px solid rgba(255,255,255,.08);
+  display:flex; align-items:center; gap:10px;
+}
+.sidebar-avatar {
+  width:36px; height:36px; border-radius:50%; background:var(--gold);
+  display:flex; align-items:center; justify-content:center;
+  font-weight:700; font-size:12px; color:var(--navy2); flex-shrink:0;
+}
+.sidebar-user-info { flex:1; min-width:0; }
+.sidebar-user-nombre { font-size:13px; font-weight:600; color:white; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.sidebar-user-rol { font-size:11px; color:rgba(255,255,255,.5); }
+
+.sidebar-nav { flex:1; overflow-y:auto; padding:12px 0; }
+.nav-section-label { font-size:10px; font-weight:700; color:rgba(255,255,255,.3); text-transform:uppercase; letter-spacing:.12em; padding:12px 20px 6px; }
+.nav-item {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 20px; cursor:pointer;
+  font-size:13px; font-weight:500; color:rgba(255,255,255,.6);
+  transition:background .15s, color .15s;
+  border-left:3px solid transparent;
+  position:relative;
+}
+.nav-item:hover { background:rgba(255,255,255,.06); color:white; }
+.nav-item.active { background:rgba(255,255,255,.1); color:white; border-left-color:var(--gold); }
+.nav-item .nav-icon { font-size:16px; width:20px; text-align:center; }
+.nav-badge { background:var(--red); color:white; font-size:10px; font-weight:700; padding:1px 6px; border-radius:10px; margin-left:auto; }
+.nav-badge.amber { background:var(--amber); }
+
+.sidebar-footer { padding:14px 20px; border-top:1px solid rgba(255,255,255,.08); }
+.btn-salir { width:100%; padding:9px; background:rgba(255,255,255,.08); color:rgba(255,255,255,.6); border:none; border-radius:8px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; font-size:12px; font-weight:500; cursor:pointer; transition:background .15s; }
+.btn-salir:hover { background:rgba(255,255,255,.15); color:white; }
+
+.main-content { margin-left:260px; min-height:100vh; }
+.topbar {
+  background:white; border-bottom:2px solid var(--border);
+  padding:0 28px; height:56px;
+  display:flex; align-items:center; justify-content:space-between;
+  position:sticky; top:0; z-index:40;
+  box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+.topbar-titulo { font-family:Georgia,'Times New Roman',serif; font-size:18px; font-weight:600; color:var(--navy); }
+.topbar-right { display:flex; align-items:center; gap:12px; }
+.topbar-fecha { font-size:12px; color:var(--muted); font-family:'Courier New',Courier,monospace; }
+
+.content { padding:28px; max-width:1100px; }
+
+.section { display:none; }
+.section.active { display:block; animation:fadeIn .2s ease; }
+@keyframes fadeIn { from{opacity:0} to{opacity:1} }
+
+/* ── CARDS ── */
+.card { background:white; border-radius:var(--r); border:1.5px solid var(--border); padding:20px; margin-bottom:14px; box-shadow:var(--shadow); }
+.card-titulo { font-size:15px; font-weight:600; color:var(--navy); margin-bottom:4px; }
+.card-sub { font-size:12px; color:var(--muted); }
+.card-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; }
+
+/* ── ALERTAS DASHBOARD ── */
+.alertas-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:14px; margin-bottom:24px; }
+.alerta-card {
+  border-radius:var(--r); padding:16px 18px;
+  display:flex; gap:14px; align-items:flex-start;
+  border:1.5px solid;
+  cursor:pointer; transition:box-shadow .2s;
+}
+.alerta-card:hover { box-shadow:var(--shadow2); }
+.alerta-card.roja { background:var(--red-bg); border-color:var(--red); }
+.alerta-card.amber { background:var(--amber-bg); border-color:var(--amber); }
+.alerta-card.azul { background:rgba(26,58,92,.06); border-color:var(--navy); }
+.alerta-icono { font-size:22px; flex-shrink:0; margin-top:2px; }
+.alerta-titulo { font-size:14px; font-weight:700; margin-bottom:3px; }
+.alerta-card.roja .alerta-titulo { color:var(--red); }
+.alerta-card.amber .alerta-titulo { color:var(--amber); }
+.alerta-card.azul .alerta-titulo { color:var(--navy); }
+.alerta-desc { font-size:12px; color:var(--ink2); line-height:1.5; }
+.alerta-exp { font-size:11px; font-weight:600; margin-top:4px; font-family:'Courier New',Courier,monospace; }
+.alerta-card.roja .alerta-exp { color:var(--red); }
+.alerta-card.amber .alerta-exp { color:var(--amber); }
+.alerta-card.azul .alerta-exp { color:var(--navy); }
+
+/* ── STATS ── */
+.stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:24px; }
+.stat-card { background:white; border-radius:var(--r); border:1.5px solid var(--border); padding:18px; text-align:center; box-shadow:var(--shadow); }
+.stat-num { font-family:Georgia,'Times New Roman',serif; font-size:32px; font-weight:600; color:var(--navy); }
+.stat-label { font-size:11px; color:var(--muted); margin-top:4px; text-transform:uppercase; letter-spacing:.06em; }
+.stat-sub { font-size:12px; color:var(--muted); margin-top:2px; }
+
+/* ── EXPEDIENTE SELECTOR ── */
+.exp-selector {
+  display:flex; gap:10px; align-items:center; margin-bottom:20px; flex-wrap:wrap;
+}
+.exp-selector select {
+  flex:1; padding:10px 14px; border:1.5px solid var(--border); border-radius:var(--r);
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; font-size:14px; outline:none; background:white;
+  min-width:200px;
+}
+.exp-selector select:focus { border-color:var(--navy); }
+
+/* ── EXPEDIENTE DETALLE ── */
+.exp-header {
+  background:var(--navy); border-radius:var(--r); padding:20px 24px;
+  margin-bottom:18px; color:white;
+  display:flex; justify-content:space-between; align-items:flex-start;
+  flex-wrap:wrap; gap:12px;
+}
+.exp-num { font-family:'Courier New',Courier,monospace; font-size:12px; color:var(--gold2); margin-bottom:4px; }
+.exp-titulo { font-family:Georgia,'Times New Roman',serif; font-size:20px; font-weight:600; }
+.exp-meta { font-size:12px; color:rgba(255,255,255,.6); margin-top:4px; }
+.exp-badges { display:flex; gap:8px; flex-wrap:wrap; }
+.exp-badge { font-size:11px; font-weight:600; padding:4px 12px; border-radius:20px; }
+.exp-badge.activo { background:var(--green-bg); color:var(--green); }
+.exp-badge.alerta { background:var(--red-bg); color:var(--red); }
+.exp-badge.vinculo { background:rgba(200,168,75,.2); color:var(--gold2); }
+
+.exp-tabs { display:flex; gap:0; margin-bottom:18px; background:white; border-radius:var(--r); border:1.5px solid var(--border); overflow:hidden; box-shadow:var(--shadow); }
+.exp-tab { flex:1; padding:12px 8px; border:none; background:none; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; font-size:12px; font-weight:500; color:var(--muted); cursor:pointer; border-bottom:2.5px solid transparent; transition:color .15s, border-color .15s; text-align:center; }
+.exp-tab:hover { color:var(--navy); }
+.exp-tab.active { color:var(--navy); border-bottom-color:var(--gold); font-weight:700; background:rgba(26,58,92,.03); }
+
+.exp-content { display:none; }
+.exp-content.active { display:block; animation:fadeIn .2s ease; }
+
+/* ── MENSAJES PANEL ── */
+.msg-panel { background:white; border-radius:var(--r); border:1.5px solid var(--border); overflow:hidden; box-shadow:var(--shadow); }
+.msg-panel-header { background:var(--cream); padding:12px 18px; border-bottom:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; }
+.msg-panel-titulo { font-size:13px; font-weight:600; color:var(--navy); }
+.msg-list { max-height:400px; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:10px; background:var(--cream); }
+.msg-juzgado { max-width:75%; }
+.msg-juzgado.a { align-self:flex-start; }
+.msg-juzgado.b { align-self:flex-end; }
+.msg-juzgado-nombre { font-size:11px; font-weight:700; color:var(--navy); margin-bottom:3px; }
+.msg-juzgado.b .msg-juzgado-nombre { text-align:right; color:var(--navy2); }
+.msg-burbuja-j { padding:10px 14px; border-radius:12px; font-size:13px; line-height:1.5; }
+.msg-juzgado.a .msg-burbuja-j { background:white; border:1px solid var(--border); border-bottom-left-radius:3px; }
+.msg-juzgado.b .msg-burbuja-j { background:var(--navy); color:white; border-bottom-right-radius:3px; }
+.msg-alerta-tag { display:inline-block; font-size:10px; font-weight:700; padding:2px 7px; border-radius:10px; margin-top:5px; }
+.msg-alerta-tag.riesgo { background:var(--red-bg); color:var(--red); }
+.msg-meta-j { font-size:10px; color:var(--muted); margin-top:3px; font-family:'Courier New',Courier,monospace; }
+.msg-juzgado.b .msg-meta-j { text-align:right; }
+
+/* ── TABLA ── */
+.tabla { width:100%; border-collapse:collapse; }
+.tabla th { background:var(--navy); color:white; padding:10px 14px; text-align:left; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.06em; }
+.tabla th:first-child { border-radius:var(--r) 0 0 0; }
+.tabla th:last-child { border-radius:0 var(--r) 0 0; }
+.tabla td { padding:11px 14px; font-size:13px; border-bottom:1px solid var(--border); color:var(--ink2); }
+.tabla tr:last-child td { border-bottom:none; }
+.tabla tr:hover td { background:var(--cream); }
+.tabla-wrap { background:white; border-radius:var(--r); border:1.5px solid var(--border); overflow:hidden; box-shadow:var(--shadow); margin-bottom:14px; }
+
+/* ── BADGE ── */
+.badge { font-size:11px; font-weight:600; padding:3px 10px; border-radius:20px; white-space:nowrap; }
+.badge.verde { background:var(--green-bg); color:var(--green); }
+.badge.rojo { background:var(--red-bg); color:var(--red); }
+.badge.amber { background:var(--amber-bg); color:var(--amber); }
+.badge.azul { background:rgba(26,58,92,.1); color:var(--navy); }
+.badge.gris { background:var(--cream); color:var(--muted); border:1px solid var(--border); }
+
+/* ── CREAR CUENTA ── */
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.form-field { display:flex; flex-direction:column; gap:5px; }
+.form-field.full { grid-column:1/-1; }
+.form-field label { font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.07em; }
+.form-field input, .form-field select { padding:10px 14px; border:1.5px solid var(--border); border-radius:8px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; font-size:14px; outline:none; background:var(--cream); }
+.form-field input:focus, .form-field select:focus { border-color:var(--navy); background:white; }
+
+/* ── BOTONES ── */
+.btn { padding:9px 18px; border-radius:8px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif; font-size:13px; font-weight:600; cursor:pointer; border:none; transition:opacity .15s; display:inline-flex; align-items:center; gap:6px; }
+.btn:hover { opacity:.85; }
+.btn.navy { background:var(--navy); color:white; }
+.btn.green { background:var(--green); color:white; }
+.btn.red { background:var(--red); color:white; }
+.btn.outline { background:none; border:1.5px solid var(--border); color:var(--ink2); }
+.btn.gold { background:var(--gold); color:var(--navy2); }
+
+/* ── MODAL ── */
+.modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.5); z-index:200; align-items:center; justify-content:center; padding:20px; }
+.modal-overlay.open { display:flex; }
+.modal { background:white; border-radius:14px; padding:28px; width:100%; max-width:480px; box-shadow:0 24px 64px rgba(0,0,0,.3); animation:fadeUp .25s ease; }
+.modal-titulo { font-family:Georgia,'Times New Roman',serif; font-size:20px; font-weight:600; color:var(--navy); margin-bottom:20px; }
+.modal-footer { display:flex; gap:8px; justify-content:flex-end; margin-top:20px; }
+
+/* ── CREDENCIAL ── */
+.credencial {
+  background:var(--navy); border-radius:var(--r); padding:20px 24px;
+  color:white; margin-top:16px; display:none;
+}
+.cred-titulo { font-size:12px; color:var(--gold2); text-transform:uppercase; letter-spacing:.1em; margin-bottom:12px; font-weight:600; }
+.cred-row { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid rgba(255,255,255,.1); font-size:13px; }
+.cred-row:last-child { border-bottom:none; }
+.cred-key { color:rgba(255,255,255,.5); }
+.cred-val { font-family:'Courier New',Courier,monospace; color:white; font-weight:500; }
+
+/* TOAST */
+#toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--navy); color:white; padding:12px 24px; border-radius:30px; font-size:14px; font-weight:500; box-shadow:0 8px 24px rgba(0,0,0,.3); z-index:300; transition:transform .3s ease; white-space:nowrap; }
+#toast.show { transform:translateX(-50%) translateY(0); }
+
+@media (max-width:900px) {
+  .sidebar { display:none; }
+  .main-content { margin-left:0; }
+  .stats-row { grid-template-columns:repeat(2,1fr); }
+  .form-grid { grid-template-columns:1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-escudo">⚖️</div>
+    <div class="login-marca">VÍNCULOS</div>
+    <div class="login-sub">Panel Judicial · Juzgado de Familia N° 9</div>
+    <div class="login-rol">Acceso restringido al personal del juzgado</div>
+    <div class="field"><label>Usuario</label><input type="text" value="magistrada@jf9moron.pba.gob.ar"></div>
+    <div class="field"><label>Contraseña</label><input type="password" value="••••••••"></div>
+    <button class="btn-primary" onclick="entrar('magistrada')">Ingresar al panel</button>
+    <p style="text-align:center;font-size:12px;color:var(--muted);margin:14px 0 8px">— Ingresar como demo —</p>
+    <div class="demo-chips">
+      <div class="demo-chip" onclick="entrar('magistrada')">⚖️ Magistrada<br><span style="color:var(--muted);font-size:10px">Acceso completo</span></div>
+      <div class="demo-chip" onclick="entrar('tecnico')">🧑‍💼 Eq. Técnico<br><span style="color:var(--muted);font-size:10px">Solo mensajes</span></div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-marca">VÍNCULOS</div>
+      <div class="sidebar-sub">Panel Judicial</div>
+      <div class="sidebar-juzgado">Juzgado de Familia N° 9 · Morón</div>
+    </div>
+    <div class="sidebar-user">
+      <div class="sidebar-avatar" id="sb-avatar">M</div>
+      <div class="sidebar-user-info">
+        <div class="sidebar-user-nombre" id="sb-nombre">—</div>
+        <div class="sidebar-user-rol" id="sb-rol">—</div>
+      </div>
+    </div>
+    <div class="sidebar-nav" id="sidebar-nav">
+      <!-- generado según rol -->
+    </div>
+    <div class="sidebar-footer">
+      <button class="btn-salir" onclick="salir()">← Cerrar sesión</button>
+    </div>
+  </div>
+
+  <!-- CONTENIDO -->
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-titulo" id="topbar-titulo">Panel judicial</div>
+      <div class="topbar-right">
+        <div class="topbar-fecha" id="topbar-fecha">—</div>
+      </div>
+    </div>
+    <div class="content">
+
+      <!-- ── DASHBOARD ── -->
+      <div class="section active" id="sec-dashboard">
+        <div class="stats-row">
+          <div class="stat-card">
+            <div class="stat-num">12</div>
+            <div class="stat-label">Expedientes activos</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" style="color:var(--red)">4</div>
+            <div class="stat-label">Alertas urgentes</div>
+            <div class="stat-sub">Requieren atención hoy</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" style="color:var(--amber)">7</div>
+            <div class="stat-label">Incumplimientos</div>
+            <div class="stat-sub">Últimos 7 días</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num" style="color:var(--green)">89%</div>
+            <div class="stat-label">Cumplimiento</div>
+            <div class="stat-sub">Promedio general</div>
+          </div>
+        </div>
+
+        <div class="card-titulo" style="margin-bottom:14px;font-size:16px">⚠️ Alertas activas</div>
+        <div class="alertas-grid">
+          <div class="alerta-card roja" onclick="irAExpediente('FAM-09-2024-1847')">
+            <div class="alerta-icono">🚨</div>
+            <div>
+              <div class="alerta-titulo">Mensaje con indicador de riesgo</div>
+              <div class="alerta-desc">Detección automática de lenguaje agresivo en mensajería. Requiere evaluación del equipo técnico.</div>
+              <div class="alerta-exp">FAM-09-2024-1847 · García / Ríos · Hace 2 hs</div>
+            </div>
+          </div>
+          <div class="alerta-card roja" onclick="irAExpediente('FAM-09-2024-2103')">
+            <div class="alerta-icono">📋</div>
+            <div>
+              <div class="alerta-titulo">Incumplimiento de carga — Salud</div>
+              <div class="alerta-desc">Ningún progenitor cargó la información de salud en 72 hs. Vencido hace 24 hs.</div>
+              <div class="alerta-exp">FAM-09-2024-2103 · Peralta / Suárez · Vencido</div>
+            </div>
+          </div>
+          <div class="alerta-card amber" onclick="irAExpediente('FAM-09-2025-0341')">
+            <div class="alerta-icono">💸</div>
+            <div>
+              <div class="alerta-titulo">Gasto a clasificar</div>
+              <div class="alerta-desc">Una parte cargó un gasto marcado como "a determinar". Requiere resolución judicial sobre su naturaleza.</div>
+              <div class="alerta-exp">FAM-09-2025-0341 · Romero / Díaz · Hace 5 hs</div>
+            </div>
+          </div>
+          <div class="alerta-card amber" onclick="irAExpediente('FAM-09-2024-1847')">
+            <div class="alerta-icono">📅</div>
+            <div>
+              <div class="alerta-titulo">3 encuentros sin registrar</div>
+              <div class="alerta-desc">El progenitor no conviviente no registró 3 encuentros del régimen en los últimos 10 días.</div>
+              <div class="alerta-exp">FAM-09-2024-1847 · García / Ríos · 3 pendientes</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card-titulo" style="margin-bottom:14px;font-size:16px">📂 Expedientes recientes</div>
+        <div class="tabla-wrap">
+          <table class="tabla">
+            <thead><tr>
+              <th>Expediente</th><th>Partes</th><th>Estado</th><th>Última actividad</th><th>Alertas</th>
+            </tr></thead>
+            <tbody>
+              <tr onclick="irAExpediente('FAM-09-2024-1847')" style="cursor:pointer">
+                <td><span style="font-family:'Courier New',Courier,monospace;font-size:12px">FAM-09-2024-1847</span></td>
+                <td>García, Laura / Ríos, Marcelo<br><span style="font-size:11px;color:var(--muted)">Sofía Ríos, 8 años</span></td>
+                <td><span class="badge azul">Activo en VÍNCULOS</span></td>
+                <td style="font-size:12px;color:var(--muted)">Hace 2 horas</td>
+                <td><span class="badge rojo">2 alertas</span></td>
+              </tr>
+              <tr onclick="irAExpediente('FAM-09-2024-2103')" style="cursor:pointer">
+                <td><span style="font-family:'Courier New',Courier,monospace;font-size:12px">FAM-09-2024-2103</span></td>
+                <td>Peralta, Ana / Suárez, Jorge<br><span style="font-size:11px;color:var(--muted)">Tomás Suárez, 5 años</span></td>
+                <td><span class="badge azul">Activo en VÍNCULOS</span></td>
+                <td style="font-size:12px;color:var(--muted)">Ayer, 16:30</td>
+                <td><span class="badge rojo">1 alerta</span></td>
+              </tr>
+              <tr onclick="irAExpediente('FAM-09-2025-0341')" style="cursor:pointer">
+                <td><span style="font-family:'Courier New',Courier,monospace;font-size:12px">FAM-09-2025-0341</span></td>
+                <td>Romero, Claudia / Díaz, Fabián<br><span style="font-size:11px;color:var(--muted)">Valentina Díaz, 11 años</span></td>
+                <td><span class="badge azul">Activo en VÍNCULOS</span></td>
+                <td style="font-size:12px;color:var(--muted)">Hace 5 horas</td>
+                <td><span class="badge amber">1 alerta</span></td>
+              </tr>
+              <tr>
+                <td><span style="font-family:'Courier New',Courier,monospace;font-size:12px">FAM-09-2024-0988</span></td>
+                <td>Villalba, Paula / Torres, Emilio<br><span style="font-size:11px;color:var(--muted)">Mateo Torres, 7 años</span></td>
+                <td><span class="badge verde">Sin alertas</span></td>
+                <td style="font-size:12px;color:var(--muted)">Hace 3 días</td>
+                <td><span class="badge gris">—</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ── EXPEDIENTE ── -->
+      <div class="section" id="sec-expediente">
+        <div class="exp-selector">
+          <select id="exp-select" onchange="cargarExpediente(this.value)">
+            <option value="FAM-09-2024-1847">FAM-09-2024-1847 · García / Ríos</option>
+            <option value="FAM-09-2024-2103">FAM-09-2024-2103 · Peralta / Suárez</option>
+            <option value="FAM-09-2025-0341">FAM-09-2025-0341 · Romero / Díaz</option>
+            <option value="FAM-09-2024-0988">FAM-09-2024-0988 · Villalba / Torres</option>
+          </select>
+          <button class="btn navy" onclick="toast('Exportando al expediente electrónico...')">📤 Exportar al EJE</button>
+          <button class="btn outline" onclick="abrirModalResolucion()">📝 Generar resolución</button>
+        </div>
+
+        <div class="exp-header">
+          <div>
+            <div class="exp-num" id="exp-num">—</div>
+            <div class="exp-titulo" id="exp-titulo">—</div>
+            <div class="exp-meta" id="exp-meta">—</div>
+          </div>
+          <div class="exp-badges" id="exp-badges"></div>
+        </div>
+
+        <div class="exp-tabs" id="exp-tabs">
+          <button class="exp-tab active" onclick="irExpTab('mensajes',this)">💬 Mensajes</button>
+          <button class="exp-tab magistrada-only" onclick="irExpTab('calendario',this)">📅 Régimen</button>
+          <button class="exp-tab magistrada-only" onclick="irExpTab('gastos',this)">💸 Gastos</button>
+          <button class="exp-tab magistrada-only" onclick="irExpTab('escuela',this)">🏫 Escuela</button>
+          <button class="exp-tab magistrada-only salud-tab" onclick="irExpTab('salud',this)">🏥 Salud</button>
+          <button class="exp-tab magistrada-only" onclick="irExpTab('historial',this)">📋 Historial</button>
+        </div>
+
+        <!-- Mensajes -->
+        <div class="exp-content active" id="expt-mensajes">
+          <div class="msg-panel">
+            <div class="msg-panel-header">
+              <div class="msg-panel-titulo">Registro de mensajes — supervisión judicial</div>
+              <button class="btn outline" style="font-size:12px;padding:6px 12px" onclick="toast('Exportando mensajes al expediente...')">📤 Exportar</button>
+            </div>
+            <div class="msg-list">
+              <div class="msg-juzgado a">
+                <div class="msg-juzgado-nombre">Laura García</div>
+                <div class="msg-burbuja-j">Hola. Quería avisarte que Sofía tiene turno con la pediatra el martes 7 a las 10hs en el Centro de Salud de Morón.</div>
+                <div class="msg-meta-j">Lun 2 jun · 09:14 hs</div>
+              </div>
+              <div class="msg-juzgado b">
+                <div class="msg-juzgado-nombre">Marcelo Ríos</div>
+                <div class="msg-burbuja-j">Perfecto, gracias por avisar. ¿La llevas vos o la llevo yo?</div>
+                <div class="msg-meta-j">Lun 2 jun · 09:31 hs</div>
+              </div>
+              <div class="msg-juzgado a">
+                <div class="msg-juzgado-nombre">Laura García</div>
+                <div class="msg-burbuja-j">La llevo yo, es en mi semana. Después cargo el resumen en Salud.</div>
+                <div class="msg-meta-j">Lun 2 jun · 09:45 hs</div>
+              </div>
+              <div class="msg-juzgado b">
+                <div class="msg-juzgado-nombre">Marcelo Ríos</div>
+                <div class="msg-burbuja-j">
+                  Siempre hacés lo mismo, nunca avisás con tiempo. Estoy harto de esta situación.
+                  <div><span class="msg-alerta-tag riesgo">⚠ Alerta automática — lenguaje de riesgo detectado</span></div>
+                </div>
+                <div class="msg-meta-j">Mar 3 jun · 08:15 hs</div>
+              </div>
+              <div class="msg-juzgado a">
+                <div class="msg-juzgado-nombre">Laura García</div>
+                <div class="msg-burbuja-j">Te avisé ayer por la plataforma. Queda registrado.</div>
+                <div class="msg-meta-j">Mar 3 jun · 08:22 hs</div>
+              </div>
+            </div>
+          </div>
+          <div style="margin-top:12px;padding:12px 16px;background:var(--amber-bg);border:1.5px solid var(--amber);border-radius:var(--r);font-size:13px;color:var(--amber);font-weight:500;">
+            ⚠️ El sistema detectó un mensaje con indicadores de lenguaje agresivo el Mar 3 jun a las 08:15 hs. Se recomienda intervención del equipo técnico interdisciplinario.
+          </div>
+        </div>
+
+        <!-- Régimen -->
+        <div class="exp-content" id="expt-calendario">
+          <div class="tabla-wrap">
+            <table class="tabla">
+              <thead><tr><th>Fecha</th><th>Tipo</th><th>Estado</th><th>Registrado por</th><th>Observación</th></tr></thead>
+              <tbody>
+                <tr><td>Mié 28 may</td><td>Visita fin de semana</td><td><span class="badge verde">Cumplida</span></td><td>Ambos</td><td>—</td></tr>
+                <tr><td>Sáb 31 may</td><td>Visita fin de semana</td><td><span class="badge verde">Cumplida</span></td><td>Ambos</td><td>—</td></tr>
+                <tr><td>Lun 2 jun</td><td>Visita entre semana</td><td><span class="badge verde">Cumplida</span></td><td>Ambos</td><td>—</td></tr>
+                <tr><td>Mié 4 jun</td><td>Visita entre semana</td><td><span class="badge rojo">No realizada</span></td><td>Laura García</td><td>Niña con fiebre. Se acordó reprogramar.</td></tr>
+                <tr><td>Vie 6 jun</td><td>Visita fin de semana</td><td><span class="badge amber">Sin registrar</span></td><td>—</td><td>Vencida hace 12 hs</td></tr>
+                <tr><td>Sáb 7 jun</td><td>Visita fin de semana</td><td><span class="badge amber">Sin registrar</span></td><td>—</td><td>Vencida hace 6 hs</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:4px">
+            <div class="stat-card"><div class="stat-num" style="color:var(--green)">8</div><div class="stat-label">Cumplidas</div></div>
+            <div class="stat-card"><div class="stat-num" style="color:var(--red)">1</div><div class="stat-label">No realizadas</div></div>
+            <div class="stat-card"><div class="stat-num" style="color:var(--amber)">2</div><div class="stat-label">Sin registrar</div></div>
+          </div>
+        </div>
+
+        <!-- Gastos -->
+        <div class="exp-content" id="expt-gastos">
+          <div class="tabla-wrap">
+            <table class="tabla">
+              <thead><tr><th>Fecha</th><th>Concepto</th><th>Tipo</th><th>Monto</th><th>Cargado por</th><th>Estado</th></tr></thead>
+              <tbody>
+                <tr><td>3 jun</td><td>Útiles 2° semestre</td><td><span class="badge azul">Extraordinario</span></td><td>$ 28.500</td><td>L. García</td><td><span class="badge amber">Pendiente respuesta</span></td></tr>
+                <tr><td>2 jun</td><td>Consulta pediatría</td><td><span class="badge azul">Extraordinario</span></td><td>$ 12.000</td><td>M. Ríos</td><td><span class="badge verde">Aprobado</span></td></tr>
+                <tr><td>30 may</td><td>Colonia vacaciones</td><td><span class="badge azul">Extraordinario</span></td><td>$ 85.000</td><td>L. García</td><td><span class="badge verde">Aprobado</span></td></tr>
+                <tr><td>28 may</td><td>Mochila escolar</td><td><span class="badge amber">A clasificar</span></td><td>$ 18.000</td><td>M. Ríos</td><td><span class="badge rojo">Requiere resolución</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="margin-top:4px;padding:12px 16px;background:var(--amber-bg);border:1.5px solid var(--amber);border-radius:var(--r);font-size:13px;color:var(--amber);">
+            ⚠️ Hay un gasto marcado como "a clasificar". Requiere resolución judicial sobre su naturaleza (ordinario o extraordinario) antes de generar obligación de pago.
+            <div style="margin-top:8px"><button class="btn navy" style="font-size:12px;padding:6px 14px" onclick="toast('Resolución de clasificación generada y notificada a las partes.')">Resolver clasificación</button></div>
+          </div>
+        </div>
+
+        <!-- Escuela -->
+        <div class="exp-content" id="expt-escuela">
+          <div class="tabla-wrap">
+            <table class="tabla">
+              <thead><tr><th>Fecha carga</th><th>Tipo</th><th>Descripción</th><th>Cargado por</th><th>Estado</th></tr></thead>
+              <tbody>
+                <tr><td>3 jun · 08:30</td><td>Boletín</td><td>1° bimestre 2025 — Promedio 8.4</td><td>L. García</td><td><span class="badge verde">Registrado</span></td></tr>
+                <tr><td>2 jun · 19:00</td><td>Citación</td><td>Reunión de padres — Vie 7 jun 18 hs</td><td>M. Ríos</td><td><span class="badge verde">Registrado</span></td></tr>
+                <tr><td style="color:var(--red)">Vencido hace 3 días</td><td>Inasistencias</td><td>Informe bimestral de asistencia</td><td style="color:var(--red)">Ninguno</td><td><span class="badge rojo">Incumplimiento</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Salud -->
+        <div class="exp-content" id="expt-salud">
+          <div id="aviso-tecnico-salud" style="display:none;margin-bottom:12px;padding:12px 16px;background:rgba(26,58,92,.07);border:1.5px solid var(--navy);border-radius:var(--r);font-size:13px;color:var(--navy);font-weight:500;">
+            👁 Estás viendo el módulo de salud como equipo técnico. Podés consultar toda la información pero no podés descargar ni exportar documentos.
+          </div>
+          <div class="tabla-wrap">
+            <table class="tabla">
+              <thead><tr><th>Fecha</th><th>Tipo</th><th>Descripción</th><th>Cargado por</th><th>Visibilidad</th><th>Estado</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td>2 jun</td><td>🧠 Informe psicoterapéutico</td>
+                  <td>Seguimiento terapéutico Sofía — Lic. Fernández</td><td>L. García</td>
+                  <td><span class="badge azul">Juzgado + Eq. técnico</span></td>
+                  <td><span class="badge verde">Registrado</span></td>
+                </tr>
+                <tr>
+                  <td>30 may</td><td>🧠 Informe psicoterapéutico</td>
+                  <td>Evolución tratamiento progenitor — Lic. Castro</td><td>M. Ríos</td>
+                  <td><span class="badge azul">Juzgado + Eq. técnico</span></td>
+                  <td><span class="badge verde">Registrado</span></td>
+                </tr>
+                <tr>
+                  <td>7 jun · 10:00</td><td>🩺 Turno médico</td>
+                  <td>Control rutina — Dra. Méndez. Sin novedades.</td><td>M. Ríos</td>
+                  <td><span class="badge gris">Ambos progenitores</span></td>
+                  <td><span class="badge verde">Registrado</span></td>
+                </tr>
+                <tr>
+                  <td>1 jun</td><td>💊 Medicación</td>
+                  <td>Ibuprofeno 200mg por fiebre 38.5°. Cedió en 4 hs.</td><td>L. García</td>
+                  <td><span class="badge gris">Ambos progenitores</span></td>
+                  <td><span class="badge verde">Registrado</span></td>
+                </tr>
+                <tr>
+                  <td>30 may</td><td>🗣 Tratamiento</td>
+                  <td>Inicio fonoaudiología — Lic. Romero. Mar y Jue.</td><td>L. García</td>
+                  <td><span class="badge gris">Ambos progenitores</span></td>
+                  <td><span class="badge verde">Registrado</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="margin-top:10px;display:flex;gap:10px;" id="salud-export-btns">
+            <button class="btn navy" onclick="toast('Exportando módulo de salud al EJE...')">📤 Exportar al EJE</button>
+            <button class="btn outline" onclick="toast('Generando informe de salud...')">📊 Informe de salud</button>
+          </div>
+        </div>
+
+        <!-- Historial -->
+        <div class="exp-content" id="expt-historial">
+          <div class="tabla-wrap">
+            <table class="tabla">
+              <thead><tr><th>Fecha</th><th>Evento</th><th>Generado por</th><th>Acción tomada</th></tr></thead>
+              <tbody>
+                <tr><td>3 jun · 08:15</td><td>⚠️ Alerta — lenguaje de riesgo en mensajes</td><td>Sistema automático</td><td><span class="badge amber">Pendiente evaluación</span></td></tr>
+                <tr><td>3 jun · 00:00</td><td>Incumplimiento — informe escolar no cargado (72 hs)</td><td>Sistema automático</td><td><span class="badge rojo">Apercibimiento automático enviado</span></td></tr>
+                <tr><td>2 jun · 14:05</td><td>Gasto extraordinario aprobado — $ 12.000</td><td>M. Ríos / L. García</td><td><span class="badge verde">Registrado</span></td></tr>
+                <tr><td>30 may · 09:00</td><td>Gasto extraordinario aprobado — $ 85.000</td><td>L. García / M. Ríos</td><td><span class="badge verde">Registrado</span></td></tr>
+                <tr><td>15 may</td><td>Expediente incorporado a VÍNCULOS</td><td>Juzgado</td><td><span class="badge azul">Cuentas creadas y notificadas</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="margin-top:12px;display:flex;gap:10px;">
+            <button class="btn navy" onclick="toast('Exportando historial completo al EJE...')">📤 Exportar historial al EJE</button>
+            <button class="btn outline" onclick="toast('Generando informe de cumplimiento...')">📊 Informe de cumplimiento</button>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ── CUENTAS ── -->
+      <div class="section" id="sec-cuentas">
+        <div class="card">
+          <div class="card-header">
+            <div><div class="card-titulo">Crear nuevas cuentas</div><div class="card-sub">El juzgado crea las credenciales y las entrega a las partes</div></div>
+          </div>
+          <div class="form-grid">
+            <div class="form-field">
+              <label>Expediente</label>
+              <select>
+                <option>FAM-09-2024-1847 · García / Ríos</option>
+                <option>FAM-09-2024-2103 · Peralta / Suárez</option>
+                <option>FAM-09-2025-0341 · Romero / Díaz</option>
+                <option>+ Nuevo expediente</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label>Perfil de acceso</label>
+              <select id="cuenta-perfil">
+                <option value="progenitor">Progenitor/a</option>
+                <option value="prof_salud">Profesional de salud</option>
+                <option value="tecnico">Equipo técnico</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label>Nombre completo</label>
+              <input type="text" placeholder="Ej: García, Laura Beatriz">
+            </div>
+            <div class="form-field">
+              <label>DNI</label>
+              <input type="text" placeholder="Ej: 28.345.678">
+            </div>
+            <div class="form-field full">
+              <label>Correo electrónico (para enviar credenciales)</label>
+              <input type="text" placeholder="correo@ejemplo.com">
+            </div>
+          </div>
+          <div style="margin-top:16px">
+            <button class="btn navy" onclick="generarCredencial()">⚙️ Generar credenciales</button>
+          </div>
+          <div class="credencial" id="credencial-box">
+            <div class="cred-titulo">✓ Credenciales generadas</div>
+            <div class="cred-row"><span class="cred-key">Usuario</span><span class="cred-val" id="cred-usuario">—</span></div>
+            <div class="cred-row"><span class="cred-key">Contraseña temporal</span><span class="cred-val" id="cred-pass">—</span></div>
+            <div class="cred-row"><span class="cred-key">Perfil</span><span class="cred-val" id="cred-perfil">—</span></div>
+            <div class="cred-row"><span class="cred-key">Acceso</span><span class="cred-val">vinculos.jf9moron.pba.gob.ar</span></div>
+            <div style="margin-top:12px;display:flex;gap:8px">
+              <button class="btn gold" onclick="toast('Credenciales enviadas por correo electrónico')">📧 Enviar por email</button>
+              <button class="btn outline" style="color:white;border-color:rgba(255,255,255,.3)" onclick="toast('Imprimiendo credenciales...')">🖨️ Imprimir</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div><div class="card-titulo">Cuentas activas</div><div class="card-sub">Todas las cuentas del sistema</div></div></div>
+          <div class="tabla-wrap" style="margin-bottom:0;box-shadow:none;border:1px solid var(--border)">
+            <table class="tabla">
+              <thead><tr><th>Usuario</th><th>Nombre</th><th>Expediente</th><th>Perfil</th><th>Estado</th><th></th></tr></thead>
+              <tbody>
+                <tr><td style="font-family:'Courier New',Courier,monospace;font-size:12px">garcia.laura</td><td>Laura García</td><td>FAM-09-2024-1847</td><td><span class="badge azul">Progenitora</span></td><td><span class="badge verde">Activa</span></td><td><button class="btn outline" style="font-size:11px;padding:4px 10px" onclick="toast('Cuenta suspendida temporalmente')">Suspender</button></td></tr>
+                <tr><td style="font-family:'Courier New',Courier,monospace;font-size:12px">rios.marcelo</td><td>Marcelo Ríos</td><td>FAM-09-2024-1847</td><td><span class="badge azul">Progenitor</span></td><td><span class="badge verde">Activa</span></td><td><button class="btn outline" style="font-size:11px;padding:4px 10px" onclick="toast('Cuenta suspendida temporalmente')">Suspender</button></td></tr>
+                <tr><td style="font-family:'Courier New',Courier,monospace;font-size:12px">peralta.ana</td><td>Ana Peralta</td><td>FAM-09-2024-2103</td><td><span class="badge azul">Progenitora</span></td><td><span class="badge verde">Activa</span></td><td><button class="btn outline" style="font-size:11px;padding:4px 10px" onclick="toast('Cuenta suspendida temporalmente')">Suspender</button></td></tr>
+                <tr><td style="font-family:'Courier New',Courier,monospace;font-size:12px">mendez.dra</td><td>Dra. Méndez</td><td>FAM-09-2024-1847</td><td><span class="badge amber">Prof. salud</span></td><td><span class="badge verde">Activa</span></td><td><button class="btn outline" style="font-size:11px;padding:4px 10px" onclick="toast('Cuenta suspendida temporalmente')">Suspender</button></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main-content -->
+</div><!-- /app -->
+
+<!-- Modal resolución -->
+<div class="modal-overlay" id="modal-resolucion">
+  <div class="modal">
+    <div class="modal-titulo">Generar resolución desde VÍNCULOS</div>
+    <div class="form-field" style="margin-bottom:12px">
+      <label>Tipo de resolución</label>
+      <select>
+        <option>Apercibimiento por incumplimiento de carga</option>
+        <option>Fijación de astreintes</option>
+        <option>Clasificación de gasto (ordinario/extraordinario)</option>
+        <option>Modificación del régimen de comunicación</option>
+        <option>Incorporación de nuevo expediente a VÍNCULOS</option>
+      </select>
+    </div>
+    <div class="form-field" style="margin-bottom:12px">
+      <label>Observaciones para el considerando</label>
+      <textarea style="width:100%;border:1.5px solid var(--border);border-radius:8px;padding:10px 14px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:14px;resize:vertical;min-height:80px;outline:none;" placeholder="Elementos del expediente a destacar..."></textarea>
+    </div>
+    <div class="modal-footer">
+      <button class="btn outline" onclick="cerrarModales()">Cancelar</button>
+      <button class="btn navy" onclick="cerrarModales();toast('Resolución generada y enviada al EJE')">Generar resolución</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast">—</div>
+
+<script>
+// ── DATOS ──────────────────────────────────────────────────────────────────
+const expedientes = {
+  'FAM-09-2024-1847': {
+    num: 'FAM-09-2024-1847',
+    titulo: 'García, Laura Beatriz c/ Ríos, Marcelo Alejandro',
+    meta: 'Régimen de comunicación · Sofía Ríos, 8 años · Incorporado a VÍNCULOS: 15 may 2025',
+    badges: ['Activo en VÍNCULOS','2 alertas activas']
+  },
+  'FAM-09-2024-2103': {
+    num: 'FAM-09-2024-2103',
+    titulo: 'Peralta, Ana María c/ Suárez, Jorge Luis',
+    meta: 'Cuidado personal · Tomás Suárez, 5 años · Incorporado a VÍNCULOS: 3 abr 2025',
+    badges: ['Activo en VÍNCULOS','1 alerta activa']
+  },
+  'FAM-09-2025-0341': {
+    num: 'FAM-09-2025-0341',
+    titulo: 'Romero, Claudia c/ Díaz, Fabián Rodrigo',
+    meta: 'Régimen de comunicación y alimentos · Valentina Díaz, 11 años · Incorporado a VÍNCULOS: 2 jun 2025',
+    badges: ['Activo en VÍNCULOS','1 gasto a clasificar']
+  },
+  'FAM-09-2024-0988': {
+    num: 'FAM-09-2024-0988',
+    titulo: 'Villalba, Paula c/ Torres, Emilio Hernán',
+    meta: 'Régimen de comunicación · Mateo Torres, 7 años · Incorporado a VÍNCULOS: 10 mar 2025',
+    badges: ['Activo en VÍNCULOS','Sin alertas']
+  }
+};
+
+const roles = {
+  magistrada: { nombre: 'Magistrada', inicial: 'M', rol: 'Acceso completo', avatar: 'M' },
+  tecnico:    { nombre: 'Lic. Rodríguez', inicial: 'TR', rol: 'Equipo técnico', avatar: 'TR' }
+};
+
+let rolActual = null;
+
+// ── LOGIN ──────────────────────────────────────────────────────────────────
+function entrar(rol) {
+  rolActual = rol;
+  const u = roles[rol];
+  document.getElementById('sb-avatar').textContent = u.avatar;
+  document.getElementById('sb-nombre').textContent = u.nombre;
+  document.getElementById('sb-rol').textContent = u.rol;
+  document.getElementById('topbar-fecha').textContent = new Date().toLocaleDateString('es-AR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  generarNav(rol);
+  // ocultar tabs restringidas para equipo técnico
+  document.querySelectorAll('.magistrada-only').forEach(el => {
+    el.style.display = rol === 'tecnico' ? 'none' : '';
+  });
+  // equipo técnico sí ve salud pero no exporta
+  if (rol === 'tecnico') {
+    document.querySelector('.salud-tab').style.display = '';
+    document.getElementById('aviso-tecnico-salud').style.display = 'block';
+    const exportBtns = document.getElementById('salud-export-btns');
+    if (exportBtns) exportBtns.style.display = 'none';
+  }
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  cargarExpediente('FAM-09-2024-1847');
+}
+
+function salir() {
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+
+// ── NAV ────────────────────────────────────────────────────────────────────
+function generarNav(rol) {
+  const nav = document.getElementById('sidebar-nav');
+  const items = rol === 'magistrada' ? [
+    { id:'dashboard', icon:'🏠', label:'Inicio', badge:null },
+    { id:'expediente', icon:'📂', label:'Expedientes', badge:'4' },
+    { id:'cuentas', icon:'👤', label:'Cuentas y accesos', badge:null },
+  ] : [
+    { id:'dashboard', icon:'🏠', label:'Inicio', badge:null },
+    { id:'expediente', icon:'💬', label:'Mensajes', badge:'1' },
+  ];
+  nav.innerHTML = '<div class="nav-section-label">Menú principal</div>' +
+    items.map(i => `
+      <div class="nav-item${i.id==='dashboard'?' active':''}" onclick="irA('${i.id}',this)">
+        <span class="nav-icon">${i.icon}</span>
+        ${i.label}
+        ${i.badge ? `<span class="nav-badge">${i.badge}</span>` : ''}
+      </div>`).join('');
+}
+
+// ── NAVEGACIÓN ─────────────────────────────────────────────────────────────
+function irA(sec, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('sec-' + sec).classList.add('active');
+  if (el) el.classList.add('active');
+  const titulos = { dashboard:'Panel de control', expediente:'Expedientes', cuentas:'Cuentas y accesos' };
+  document.getElementById('topbar-titulo').textContent = titulos[sec] || 'Panel judicial';
+}
+
+function irAExpediente(num) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('sec-expediente').classList.add('active');
+  document.getElementById('exp-select').value = num;
+  cargarExpediente(num);
+  document.getElementById('topbar-titulo').textContent = 'Expedientes';
+}
+
+// ── EXPEDIENTE ─────────────────────────────────────────────────────────────
+function cargarExpediente(num) {
+  const e = expedientes[num];
+  if (!e) return;
+  document.getElementById('exp-num').textContent = e.num;
+  document.getElementById('exp-titulo').textContent = e.titulo;
+  document.getElementById('exp-meta').textContent = e.meta;
+  const badgesEl = document.getElementById('exp-badges');
+  badgesEl.innerHTML = e.badges.map((b,i) =>
+    `<span class="exp-badge ${i===0?'vinculo':b.includes('alerta')||b.includes('clasificar')?'alerta':'activo'}">${b}</span>`
+  ).join('');
+  irExpTab('mensajes', document.querySelector('.exp-tab'));
+}
+
+function irExpTab(tab, btn) {
+  document.querySelectorAll('.exp-content').forEach(c => c.classList.remove('active'));
+  document.querySelectorAll('.exp-tab').forEach(t => t.classList.remove('active'));
+  const el = document.getElementById('expt-' + tab);
+  if (el) el.classList.add('active');
+  if (btn) btn.classList.add('active');
+}
+
+// ── CUENTAS ────────────────────────────────────────────────────────────────
+function generarCredencial() {
+  const perfil = document.getElementById('cuenta-perfil').value;
+  const perfiles = { progenitor:'Progenitor/a', prof_salud:'Profesional de salud', tecnico:'Equipo técnico' };
+  const usuario = 'usuario.' + Math.random().toString(36).substr(2,6);
+  const pass = Math.random().toString(36).substr(2,8).toUpperCase();
+  document.getElementById('cred-usuario').textContent = usuario + '@vinculos.jf9moron.pba.gob.ar';
+  document.getElementById('cred-pass').textContent = pass;
+  document.getElementById('cred-perfil').textContent = perfiles[perfil];
+  document.getElementById('credencial-box').style.display = 'block';
+  toast('Credenciales generadas correctamente');
+}
+
+// ── MODALES ────────────────────────────────────────────────────────────────
+function abrirModalResolucion() { document.getElementById('modal-resolucion').classList.add('open'); }
+function cerrarModales() { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open')); }
+document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if(e.target===o) cerrarModales(); }));
+
+// ── TOAST ──────────────────────────────────────────────────────────────────
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3200);
+}
+</script>
+</body>
+</html>
