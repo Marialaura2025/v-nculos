@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VÍNCULOS — Gestión Parental Inteligente</title>
+    <title>VÍNCULOS — Gestión Profesional</title>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { getDatabase, ref, push, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
@@ -14,10 +14,10 @@
     </script>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        :root { --navy: #1A3A5C; --gold: #C8A84B; --cream: #F7F4EE; --red: #B22222; --green: #2E7D32; --blue: #1976D2; }
-        body { font-family: -apple-system, sans-serif; background: var(--cream); color: #1c1c1e; padding-bottom: 20px; }
-        #login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #0F2540; }
-        .login-card { background: white; padding: 30px; border-radius: 16px; width: 350px; text-align: center; }
+        :root { --navy: #1A3A5C; --gold: #C8A84B; --cream: #F7F4EE; --red: #B22222; --green: #2E7D32; --lawyer: #4A4A4A; }
+        body { font-family: -apple-system, sans-serif; background: var(--cream); color: #1c1c1e; }
+        #login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #0F2540; padding:20px; }
+        .login-card { background: white; padding: 30px; border-radius: 16px; width: 100%; max-width: 400px; text-align: center; }
         .btn-role { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1.5px solid #ddd; cursor: pointer; font-weight: bold; background: white; }
         #app { display: none; }
         .topbar { background: var(--navy); color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; }
@@ -27,14 +27,9 @@
         .main { padding: 15px; max-width: 600px; margin: 0 auto; }
         .section { display: none; }
         .section.active { display: block; }
-        .card { background: white; padding: 15px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .badge { font-size: 9px; font-weight: bold; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; margin-bottom: 5px; display: inline-block; }
+        .card { background: white; padding: 15px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 10px; }
         .btn-main { background: var(--navy); color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; cursor: pointer; font-weight: bold; }
-        .file-input { font-size: 11px; margin-top: 5px; }
-        .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; background: #ddd; border: 1px solid #ddd; }
-        .cal-day { background: white; min-height: 60px; padding: 4px; font-size: 10px; }
-        .event { font-size: 8px; padding: 2px; border-radius: 2px; margin-top: 2px; color: white; }
-        input, textarea { width: 100%; padding: 8px; border-radius: 6px; border: 1px solid #ddd; margin-top: 5px; }
+        .lawyer-banner { background: var(--lawyer); color: white; padding: 5px; font-size: 10px; text-align: center; text-transform: uppercase; }
         .modal-overlay { position: fixed; inset:0; background: rgba(0,0,0,0.7); display:none; align-items:center; justify-content:center; z-index:200; }
         .modal { background: white; padding: 20px; border-radius: 12px; width: 90%; max-width: 400px; }
     </style>
@@ -44,18 +39,20 @@
 <div id="login-screen">
     <div class="login-card">
         <h2 style="color:var(--navy); font-family: Georgia;">⚖️ VÍNCULOS</h2>
-        <p style="font-size: 11px; color: #888; margin-bottom: 20px;">Protocolo de Gestión Judicial</p>
+        <br>
         <button class="btn-role" onclick="entrar('madre')">👩 Laura García (Madre)</button>
         <button class="btn-role" onclick="entrar('padre')">👨 Marcelo Ríos (Padre)</button>
+        <hr style="margin: 15px 0">
+        <button class="btn-role" onclick="abrirModal('m-lawyer')" style="border-color: var(--lawyer);">💼 Letrado Patrocinante</button>
         <button class="btn-role" onclick="entrar('juez')" style="background: var(--navy); color: white;">🏛️ Acceso Judicial</button>
     </div>
 </div>
 
 <div id="app">
+    <div id="lawyer-header" class="lawyer-banner" style="display:none">Modo Letrado: Vista de Cliente Activa</div>
     <div class="topbar"><span>VÍNCULOS</span><small id="user-display"></small></div>
     <div class="nav-tabs">
         <button class="nav-tab active" onclick="irA('chat', this)">💬 Chat</button>
-        <button class="nav-tab" onclick="irA('cal', this)">📅 Agenda</button>
         <button class="nav-tab" onclick="irA('gastos', this)">💸 Gastos</button>
         <button class="nav-tab" onclick="irA('educa', this)">🏫 Escuela</button>
         <button class="nav-tab" onclick="irA('salud', this)">🏥 Salud</button>
@@ -63,176 +60,93 @@
 
     <div class="main">
         <div id="sec-chat" class="section active">
-            <div id="chat-box" style="height:300px; overflow-y:auto; border:1px solid #ddd; background:white; padding:10px; border-radius:8px; display:flex; flex-direction:column; gap:5px"></div>
-            <div style="margin-top:10px;">
-                <textarea id="msg-in" placeholder="Escribir..."></textarea>
-                <div style="display:flex; justify-content: space-between; align-items: center; margin-top:5px">
-                    <input type="file" class="file-input" id="chat-file">
-                    <button onclick="enviarMensaje()" style="background:var(--navy); color:white; border:none; padding:8px 15px; border-radius:5px">Enviar</button>
-                </div>
+            <div id="chat-box" style="height:350px; overflow-y:auto; border:1px solid #ddd; background:white; padding:10px; border-radius:8px; display:flex; flex-direction:column; gap:8px"></div>
+            <div id="ctrl-padres" style="margin-top:10px">
+                <textarea id="msg-in" style="width:100%; padding:8px; border-radius:6px; border:1px solid #ddd;" placeholder="Escribir..."></textarea>
+                <button onclick="enviar()" class="btn-main" style="margin-top:5px">Enviar</button>
             </div>
-        </div>
-
-        <div id="sec-cal" class="section">
-            <h4 style="margin-bottom:10px">Mayo 2026</h4>
-            <div class="calendar-grid" id="cal-grid"></div>
-            <div style="margin-top:15px; font-size:11px">
-                <span style="color:var(--green)">● Acuerdo</span> | <span style="color:var(--red)">● Incumplimiento</span> | <span style="color:var(--blue)">● Turnos/Reuniones</span>
+            <div id="ctrl-profesional" style="display:none; margin-top:10px">
+                <button class="btn-main" style="background:#555" onclick="alert('Descargando reporte certificado...')">📄 Descargar Prueba Certificada</button>
             </div>
-            <button class="btn-main" onclick="abrirModal('m-cal')" style="margin-top:10px">Registrar Incidencia/Cambio</button>
         </div>
 
         <div id="sec-gastos" class="section">
-            <button class="btn-main" onclick="abrirModal('m-gasto')">+ Cargar Gasto/Factura</button>
+            <div id="btn-gasto-ctrl"></div>
             <div id="lista-gastos" style="margin-top:15px"></div>
         </div>
 
-        <div id="sec-educa" class="section">
-            <button class="btn-main" onclick="abrirModal('m-educa')">+ Subir Nota/Boletín</button>
-            <div id="lista-educa" style="margin-top:15px"></div>
-        </div>
-
-        <div id="sec-salud" class="section">
-            <button class="btn-main" onclick="abrirModal('m-salud')">+ Subir Certificado/Turno</button>
-            <div id="lista-salud" style="margin-top:15px"></div>
-        </div>
+        <div id="sec-educa" class="section"><div id="lista-educa"></div></div>
+        <div id="sec-salud" class="section"><div id="lista-salud"></div></div>
     </div>
 </div>
 
-<div class="modal-overlay" id="m-gasto"><div class="modal">
-    <h3>Cargar Gasto</h3>
-    <input type="text" id="g-con" placeholder="Concepto">
-    <input type="number" id="g-mon" placeholder="Monto $">
-    <p style="font-size:10px; margin-top:10px">Adjuntar Factura/Ticket:</p>
-    <input type="file" class="file-input">
-    <button class="btn-main" onclick="guardarDato('gastos')">Subir</button>
-    <button onclick="cerrarModales()" style="background:none; border:none; width:100%; margin-top:10px">Cancelar</button>
+<div class="modal-overlay" id="m-lawyer"><div class="modal">
+    <h3>Acceso Profesional</h3><br>
+    <p style="font-size:12px">Seleccione la parte a la que representa:</p><br>
+    <button class="btn-role" onclick="entrar('abogado_madre')">Representante de Laura García</button>
+    <button class="btn-role" onclick="entrar('abogado_padre')">Representante de Marcelo Ríos</button>
 </div></div>
-
-<div class="modal-overlay" id="m-cal"><div class="modal">
-    <h3>Cambio de Régimen</h3>
-    <input type="date" id="c-fec">
-    <select id="c-tipo" style="width:100%; padding:8px; margin-top:10px; border-radius:6px">
-        <option value="acuerdo">Acuerdo entre partes (Verde)</option>
-        <option value="incumplimiento">Incumplimiento (Rojo)</option>
-    </select>
-    <textarea id="c-obs" placeholder="Observaciones..." style="margin-top:10px"></textarea>
-    <button class="btn-main" onclick="guardarCalendario()">Registrar</button>
-</div></div>
-
-<div class="modal-overlay" id="m-educa"><div class="modal"><h3>Escuela</h3><input type="text" id="e-con" placeholder="Ej: Boletín 1er Trimestre"><input type="file" class="file-input"><button class="btn-main" onclick="guardarDato('educacion')">Subir</button></div></div>
-<div class="modal-overlay" id="m-salud"><div class="modal"><h3>Salud</h3><input type="text" id="s-con" placeholder="Ej: Turno Dentista"><input type="date" id="s-fec"><input type="file" class="file-input"><button class="btn-main" onclick="guardarDato('salud')">Subir</button></div></div>
 
 <script>
-    let usuario = ""; let rolActual = "";
+    let usuario = ""; let rolActual = ""; let clienteRef = "";
     const path = "expedientes/FAM-09-2024-1847";
 
     function entrar(rol) {
         rolActual = rol;
-        usuario = rol === 'madre' ? "Laura García" : (rol === 'padre' ? "Marcelo Ríos" : "Juzgado Familia 9");
+        cerrarModales();
+        
+        if(rol.includes('abogado')) {
+            clienteRef = rol === 'abogado_madre' ? "Laura García" : "Marcelo Ríos";
+            usuario = "Abog. de " + clienteRef;
+            document.getElementById('lawyer-header').style.display = 'block';
+            document.getElementById('ctrl-padres').style.display = 'none';
+            document.getElementById('ctrl-profesional').style.display = 'block';
+        } else if(rol === 'juez') {
+            usuario = "Juzgado de Familia";
+            document.getElementById('ctrl-padres').style.display = 'none';
+            document.getElementById('ctrl-profesional').style.display = 'block';
+        } else {
+            usuario = rol === 'madre' ? "Laura García" : "Marcelo Ríos";
+            document.getElementById('btn-gasto-ctrl').innerHTML = '<button class="btn-main" onclick="alert(\'Cargar Gasto...\')">+ Nuevo Gasto</button>';
+        }
+
         document.getElementById('user-display').innerText = usuario;
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('app').style.display = 'block';
-        generarCalendario();
-        conectarFirebase();
+        conectar();
     }
 
-    function generarCalendario() {
-        const grid = document.getElementById('cal-grid'); grid.innerHTML = "";
-        for(let i=1; i<=31; i++) {
-            grid.innerHTML += `<div class="cal-day" id="day-${i}"><b>${i}</b></div>`;
-        }
-    }
-
-    function guardarCalendario() {
+    function enviar() {
         const { db, ref, push } = window._fb;
-        const fecha = document.getElementById('c-fec').value;
-        const dia = parseInt(fecha.split('-')[2]);
-        push(ref(db, `${path}/calendario`), {
-            dia: dia,
-            tipo: document.getElementById('c-tipo').value,
-            obs: document.getElementById('c-obs').value,
-            autor: usuario
-        });
-        cerrarModales();
+        push(ref(db, `${path}/chat`), { autor: usuario, txt: document.getElementById('msg-in').value, fecha: new Date().toLocaleTimeString() });
+        document.getElementById('msg-in').value = "";
     }
 
-    function guardarDato(tipo) {
-        const { db, ref, push } = window._fb;
-        let data = { autor: usuario, fecha: new Date().toLocaleDateString(), status: "Registrado" };
-        
-        if(tipo === 'gastos') {
-            data.con = document.getElementById('g-con').value;
-            data.mon = document.getElementById('g-mon').value;
-            data.file = "✓ Comprobante Adjunto";
-        } else if (tipo === 'salud') {
-            data.con = document.getElementById('s-con').value;
-            data.fec = document.getElementById('s-fec').value;
-            // Si es turno médico, marcar en calendario automáticamente
-            const dia = parseInt(data.fec.split('-')[2]);
-            push(ref(db, `${path}/calendario`), { dia: dia, tipo: 'turno', obs: data.con, autor: usuario });
-        } else {
-            data.con = document.getElementById('e-con').value;
-            data.file = "✓ Imagen/PDF Adjunto";
-        }
-
-        push(ref(db, `${path}/${tipo}`), data);
-        cerrarModales();
-    }
-
-    function conectarFirebase() {
+    function conectar() {
         const { db, ref, onValue } = window._fb;
-        
-        // Monitor Calendario
-        onValue(ref(db, `${path}/calendario`), snap => {
-            snap.forEach(c => {
-                const e = c.val();
-                const d = document.getElementById(`day-${e.dia}`);
-                if(d) {
-                    const color = e.tipo === 'acuerdo' ? 'var(--green)' : (e.tipo === 'incumplimiento' ? 'var(--red)' : 'var(--blue)');
-                    d.innerHTML += `<div class="event" style="background:${color}">${e.obs}</div>`;
-                }
-            });
-        });
-
-        // Monitor Chat
         onValue(ref(db, `${path}/chat`), snap => {
             const box = document.getElementById('chat-box'); box.innerHTML = "";
             snap.forEach(c => {
                 const m = c.val();
-                box.innerHTML += `<div style="padding:8px; border-radius:10px; font-size:11px; align-self:${m.autor===usuario?'flex-end':'flex-start'}; background:${m.autor===usuario?'var(--navy)':'#eee'}; color:${m.autor===usuario?'white':'black'}">
-                    <b>${m.autor}</b><br>${m.txt} ${m.file ? '<br><small>📎 Archivo adjunto</small>' : ''}</div>`;
+                // Si soy abogado de Laura, los mensajes de Laura salen a la derecha (azul) y los del padre a la izquierda
+                const esMio = (rolActual === 'madre' || rolActual === 'abogado_madre') ? m.autor.includes("Laura") : m.autor.includes("Marcelo");
+                
+                box.innerHTML += `<div style="padding:10px; border-radius:10px; margin-bottom:5px; align-self:${esMio?'flex-end':'flex-start'}; background:${esMio?'var(--navy)':'#eee'}; color:${esMio?'white':'black'}">
+                    <b>${m.autor}</b><br>${m.txt}</div>`;
             });
             box.scrollTop = box.scrollHeight;
         });
 
-        // Monitor Listas (Gastos, Salud, Educa)
         const monitor = (tipo, divId) => {
             onValue(ref(db, `${path}/${tipo}`), snap => {
                 const l = document.getElementById(divId); l.innerHTML = "";
                 snap.forEach(c => {
                     const d = c.val();
-                    l.innerHTML += `<div class="card">
-                        <span class="badge" style="background:var(--navy); color:white">${tipo}</span><br>
-                        <b>${d.con}</b> ${d.mon ? '- $'+d.mon : ''}<br>
-                        <small style="color:var(--green)">${d.file || ''}</small><br>
-                        <small>${d.autor} - ${d.fecha}</small>
-                    </div>`;
+                    l.innerHTML += `<div class="card"><b>${d.con}</b><br><small>${d.autor} - ${d.fecha}</small></div>`;
                 });
             });
         };
         monitor('gastos', 'lista-gastos'); monitor('educacion', 'lista-educa'); monitor('salud', 'lista-salud');
-    }
-
-    function enviarMensaje() {
-        const { db, ref, push } = window._fb;
-        const file = document.getElementById('chat-file').files[0];
-        push(ref(db, `${path}/chat`), {
-            autor: usuario,
-            txt: document.getElementById('msg-in').value,
-            file: file ? true : false
-        });
-        document.getElementById('msg-in').value = "";
     }
 
     function irA(s, btn) {
