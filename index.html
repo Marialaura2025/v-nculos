@@ -6,141 +6,125 @@
     <title>VÍNCULOS — Plataforma Judicial</title>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+        import { getDatabase, ref, push, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
         const firebaseConfig = { databaseURL: "https://vinculos-app-default-rtdb.firebaseio.com/" };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        window._fb = { db, ref, push, onValue };
+        window._fb = { db, ref, push, onValue, set };
     </script>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        :root { --navy: #1A3A5C; --gold: #C8A84B; --cream: #F7F4EE; --border: #DDD8CE; --red: #8B1A1A; --amber: #7A4F1A; --grey: #666; }
-        body { font-family: -apple-system, sans-serif; background: var(--cream); color: #1c1c1e; }
-        #login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #0F2540; }
-        .login-card { background: white; padding: 40px; border-radius: 16px; width: 350px; text-align: center; }
+        :root { --navy: #1A3A5C; --gold: #C8A84B; --cream: #F7F4EE; --red: #8B1A1A; --green: #1A6B3A; --amber: #7A4F1A; }
+        body { font-family: -apple-system, sans-serif; background: var(--cream); color: #1c1c1e; padding-bottom: 40px; }
+        #login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #0F2540; padding: 20px; }
+        .login-card { background: white; padding: 30px; border-radius: 16px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+        .btn-role { width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1.5px solid #ddd; cursor: pointer; font-weight: bold; background: white; }
         #app { display: none; }
-        .topbar { background: var(--navy); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
-        .nav-tabs { background: white; display: flex; border-bottom: 1px solid #ddd; overflow-x: auto; position: sticky; top: 0; z-index: 10; }
-        .nav-tab { flex: 1; padding: 15px; border: none; background: none; cursor: pointer; font-weight: 600; color: #666; white-space: nowrap; }
+        .topbar { background: var(--navy); color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; }
+        .nav-tabs { background: white; display: flex; border-bottom: 1px solid #ddd; overflow-x: auto; position: sticky; top: 48px; z-index: 90; }
+        .nav-tab { flex: 1; padding: 15px 10px; border: none; background: none; cursor: pointer; font-weight: 600; color: #666; font-size: 10px; text-transform: uppercase; white-space: nowrap; }
         .nav-tab.active { color: var(--navy); border-bottom: 3px solid var(--gold); }
         .main { padding: 20px; max-width: 600px; margin: 0 auto; }
         .section { display: none; }
         .section.active { display: block; }
-        .card { background: white; padding: 15px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .chat-window { background: white; height: 350px; border-radius: 10px; border: 1px solid #ddd; display: flex; flex-direction: column; }
-        .chat-msgs { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
-        .msg { padding: 8px 12px; border-radius: 10px; font-size: 14px; max-width: 80%; }
-        .msg.yo { align-self: flex-end; background: var(--navy); color: white; }
-        .msg.otro { align-self: flex-start; background: #eee; }
-        .chat-input-area { padding: 10px; border-top: 1px solid #ddd; display: flex; gap: 5px; }
-        textarea, input, select { width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ddd; margin-bottom: 10px; font-size: 14px; }
-        .modal-overlay { position: fixed; inset:0; background: rgba(0,0,0,0.7); display:none; align-items:center; justify-content:center; z-index:100; }
+        .card { background: white; padding: 15px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 12px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .badge { font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 4px; text-transform: uppercase; display: inline-block; margin-bottom: 5px; }
+        .btn-main { background: var(--navy); color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; cursor: pointer; font-weight: bold; margin-top: 10px; }
+        .modal-overlay { position: fixed; inset:0; background: rgba(0,0,0,0.7); display:none; align-items:center; justify-content:center; z-index:200; }
         .modal { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 400px; }
-        .btn-main { background: var(--navy); color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; cursor: pointer; font-weight: bold; }
-        .badge-tipo { font-size: 10px; font-weight: bold; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-bottom: 5px; }
+        input, textarea, select { width: 100%; padding: 10px; border-radius: 6px; border: 1px solid #ddd; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
 <div id="login-screen">
     <div class="login-card">
-        <h2 style="color:var(--navy); margin-bottom:20px; font-family: Georgia;">⚖️ VÍNCULOS</h2>
-        <button class="btn-main" style="margin-bottom:10px" onclick="entrar('madre')">Laura García (Madre)</button>
-        <button class="btn-main" style="background:#4A5568" onclick="entrar('padre')">Marcelo Ríos (Padre)</button>
-        <p style="font-size: 11px; color: #888; margin-top: 15px;">Juzgado de Familia N° 9 - Morón</p>
+        <h2 style="color:var(--navy); margin-bottom:5px; font-family: Georgia;">⚖️ VÍNCULOS</h2>
+        <p style="font-size: 11px; color: #888; margin-bottom: 25px;">Plataforma de Comunicación Parental</p>
+        <button class="btn-role" onclick="entrar('madre')">👩 Laura García (Madre)</button>
+        <button class="btn-role" onclick="entrar('padre')">👨 Marcelo Ríos (Padre)</button>
+        <button class="btn-role" onclick="entrar('juez')" style="background: var(--navy); color: white;">🏛️ Acceso Judicial / Letrados</button>
     </div>
 </div>
 
 <div id="app">
-    <div class="topbar">
-        <span>VÍNCULOS</span>
-        <small id="user-display"></small>
-    </div>
+    <div class="topbar"><span>VÍNCULOS</span><small id="user-display"></small></div>
     <div class="nav-tabs">
-        <button class="nav-tab active" onclick="irA('mensajes', this)">Chat</button>
-        <button class="nav-tab" onclick="irA('gastos', this)">Gastos</button>
-        <button class="nav-tab" onclick="irA('salud', this)">Salud</button>
-        <button class="nav-tab" onclick="irA('educacion', this)">Educación</button>
+        <button class="nav-tab active" onclick="irA('chat', this)">💬 Chat</button>
+        <button class="nav-tab" onclick="irA('gastos', this)">💸 Gastos</button>
+        <button class="nav-tab" onclick="irA('presu', this)">📋 Presup.</button>
+        <button class="nav-tab" onclick="irA('salud', this)">🏥 Salud</button>
+        <button class="nav-tab" onclick="irA('escuela', this)">🏫 Escuela</button>
     </div>
 
     <div class="main">
-        <div id="sec-mensajes" class="section active">
-            <div class="chat-window">
-                <div class="chat-msgs" id="chat-box"></div>
-                <div class="chat-input-area">
-                    <textarea id="msg-in" placeholder="Escribir mensaje..."></textarea>
-                    <button onclick="procesarMensaje()" style="background:var(--navy); color:white; border:none; padding:10px; border-radius:5px;">➤</button>
-                </div>
+        <div id="sec-chat" class="section active">
+            <div id="chat-box" style="height:350px; overflow-y:auto; border:1px solid #ddd; background:white; padding:15px; border-radius:10px; display:flex; flex-direction:column; gap:8px"></div>
+            <div id="area-escritura" style="margin-top:10px; display:flex; gap:5px">
+                <textarea id="msg-in" style="margin-bottom:0" placeholder="Escribir mensaje..."></textarea>
+                <button onclick="procesarMensaje()" style="background:var(--navy); color:white; border:none; padding:10px; border-radius:5px">➤</button>
             </div>
         </div>
 
         <div id="sec-gastos" class="section">
-            <button class="btn-main" onclick="abrirModal('m-gasto')">+ Nuevo Gasto</button>
+            <button class="btn-main" id="btn-gasto" onclick="abrirModal('m-gasto')">+ Cargar Gasto Realizado</button>
             <div id="lista-gastos" style="margin-top:15px"></div>
         </div>
 
+        <div id="sec-presu" class="section">
+            <button class="btn-main" id="btn-presu" onclick="abrirModal('m-presu')">+ Cargar Presupuesto Nuevo</button>
+            <div id="lista-presu" style="margin-top:15px"></div>
+        </div>
+
         <div id="sec-salud" class="section">
-            <button class="btn-main" onclick="abrirModal('m-salud')">+ Novedad Salud</button>
+            <button class="btn-main" id="btn-salud" onclick="abrirModal('m-salud')">+ Cargar Novedad Médica</button>
             <div id="lista-salud" style="margin-top:15px"></div>
         </div>
 
-        <div id="sec-educacion" class="section">
-            <button class="btn-main" onclick="abrirModal('m-edu')">+ Info Escuela</button>
-            <div id="lista-edu" style="margin-top:15px"></div>
+        <div id="sec-escuela" class="section">
+            <button class="btn-main" id="btn-escuela" onclick="abrirModal('m-escuela')">+ Cargar Info Escolar</button>
+            <div id="lista-escuela" style="margin-top:15px"></div>
         </div>
-    </div>
-</div>
-
-<div class="modal-overlay" id="m-ia">
-    <div class="modal">
-        <h4 style="color:var(--red)">⚠️ Perspectiva de Género</h4><br>
-        <div style="background:#f9f9f9; padding:10px; border-radius:5px; font-style:italic; font-size:13px" id="msg-orig"></div><br>
-        <p style="color:#1A6B3A; font-weight:bold; font-size: 13px;">Sugerencia Neutral sugerida:</p>
-        <div style="background:#e8f5ee; padding:10px; border-radius:5px; font-size:13px" id="msg-sug"></div><br>
-        <button class="btn-main" onclick="enviarFinal('sug')" style="background:#1A6B3A">Usar sugerencia</button>
-        <button onclick="cerrarModales()" style="background:none; border:none; width:100%; margin-top:10px; color:#666; font-size: 12px;">Editar original</button>
     </div>
 </div>
 
 <div class="modal-overlay" id="m-gasto"><div class="modal">
-    <h3>Cargar Gasto</h3><br>
-    <label>Clasificación del Gasto</label>
-    <select id="g-tipo">
-        <option value="Extraordinario">🔵 Extraordinario (Genera obligación)</option>
-        <option value="Ordinario">🟡 Ordinario (Informativo)</option>
-        <option value="A determinar">⚪ A determinar por el Juzgado</option>
-    </select>
-    <input type="text" id="g-con" placeholder="Concepto (ej: Materiales Arte)">
-    <input type="number" id="g-mon" placeholder="Monto $">
-    <button class="btn-main" onclick="guardarDato('gastos')">Cargar en Expediente</button>
-    <button onclick="cerrarModales()" style="background:none; border:none; width:100%; margin-top:10px">Cerrar</button>
+    <h3>Nuevo Gasto</h3><br>
+    <input type="text" id="g-con" placeholder="Concepto (ej: Cuota Colegio)">
+    <input type="number" id="g-mon" placeholder="Monto total $">
+    <button class="btn-main" onclick="guardarDato('gastos')">Guardar Gasto</button>
+    <button onclick="cerrarModales()" style="background:none; border:none; width:100%; margin-top:10px">Cancelar</button>
 </div></div>
 
-<div class="modal-overlay" id="m-salud"><div class="modal">
-    <h3>Novedad de Salud</h3><br>
-    <select id="s-tipo"><option>Consulta Médica</option><option>Vacunación</option><option>Informe Psicológico</option></select>
-    <textarea id="s-det" placeholder="Detalle..."></textarea>
-    <button class="btn-main" onclick="guardarDato('salud')">Guardar</button>
-    <button onclick="cerrarModales()" style="background:none; border:none; width:100%; margin-top:10px">Cerrar</button>
+<div class="modal-overlay" id="m-presu"><div class="modal">
+    <h3>Nuevo Presupuesto</h3><br>
+    <input type="text" id="p-con" placeholder="Concepto (ej: Ortodoncia)">
+    <input type="number" id="p-mon" placeholder="Monto estimado $">
+    <button class="btn-main" onclick="guardarDato('presupuestos')">Publicar Presupuesto</button>
+    <button onclick="cerrarModales()" style="background:none; border:none; width:100%; margin-top:10px">Cancelar</button>
 </div></div>
 
-<div class="modal-overlay" id="m-edu"><div class="modal">
-    <h3>Información Escolar</h3><br>
-    <input type="text" id="e-tit" placeholder="Título (Boletín, Reunión)">
-    <textarea id="e-det" placeholder="Detalle escolar..."></textarea>
-    <button class="btn-main" onclick="guardarDato('educacion')">Guardar</button>
-    <button onclick="cerrarModales()" style="background:none; border:none; width:100%; margin-top:10px">Cerrar</button>
+<div class="modal-overlay" id="m-salud"><div class="modal"><h3>Novedad Médica</h3><br><textarea id="s-det" placeholder="Detalle..."></textarea><button class="btn-main" onclick="guardarDato('salud')">Guardar</button></div></div>
+<div class="modal-overlay" id="m-escuela"><div class="modal"><h3>Escuela</h3><br><textarea id="e-det" placeholder="Detalle..."></textarea><button class="btn-main" onclick="guardarDato('escuela')">Guardar</button></div></div>
+
+<div class="modal-overlay" id="m-ia"><div class="modal">
+    <h4 style="color:var(--red)">⚠️ Asistente de Tono</h4><br>
+    <div id="msg-sug" style="background:#e8f5ee; padding:10px; border-radius:5px; font-size:13px; color:var(--green)"></div><br>
+    <button class="btn-main" onclick="enviarFinal('sug')" style="background:var(--green)">Usar Sugerencia Neutral</button>
+    <button onclick="cerrarModales()" style="background:none; border:none; width:100%; margin-top:10px">Editar</button>
 </div></div>
 
 <script>
-    let usuario = "";
+    let usuario = ""; let rolActual = "";
     const path = "expedientes/FAM-09-2024-1847";
 
-    function entrar(u) {
-        usuario = u === 'madre' ? "Laura García" : "Marcelo Ríos";
+    function entrar(rol) {
+        rolActual = rol;
+        usuario = rol === 'madre' ? "Laura García" : (rol === 'padre' ? "Marcelo Ríos" : "Oficial Judicial");
         document.getElementById('user-display').innerText = usuario;
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('app').style.display = 'block';
+        if(rol === 'juez') document.getElementById('area-escritura').style.display = 'none';
         conectarFirebase();
     }
 
@@ -153,11 +137,9 @@
 
     function procesarMensaje() {
         const txt = document.getElementById('msg-in').value.trim();
-        if(!txt) return;
-        const disparadores = ["porque vos", "siempre haces", "estupido", "loca", "plata", "culpa", "odio", "carajo"];
+        const disparadores = ["porque vos", "siempre", "culpa", "odio", "plata"];
         if(disparadores.some(d => txt.toLowerCase().includes(d))) {
-            document.getElementById('msg-orig').innerText = `"${txt}"`;
-            document.getElementById('msg-sug').innerText = "Propongo que mantengamos el diálogo sobre los temas que conciernen al bienestar del niño/a de forma objetiva.";
+            document.getElementById('msg-sug').innerText = "Propongo tratar este tema con un enfoque objetivo centrado en las necesidades del niño/a.";
             document.getElementById('m-ia').style.display = 'flex';
         } else { enviarFinal('orig'); }
     }
@@ -166,55 +148,61 @@
         const texto = tipo === 'sug' ? document.getElementById('msg-sug').innerText : document.getElementById('msg-in').value;
         const { db, ref, push } = window._fb;
         push(ref(db, `${path}/mensajes`), { user: usuario, texto: texto, timestamp: Date.now() });
-        document.getElementById('msg-in').value = "";
-        cerrarModales();
+        document.getElementById('msg-in').value = ""; cerrarModales();
     }
 
     function guardarDato(tipo) {
         const { db, ref, push } = window._fb;
-        let data = { autor: usuario, fecha: new Date().toLocaleDateString() };
-        if(tipo === 'gastos') { 
-            data.con = document.getElementById('g-con').value; 
-            data.mon = document.getElementById('g-mon').value;
-            data.clase = document.getElementById('g-tipo').value;
-        }
-        if(tipo === 'salud') { data.tipo = document.getElementById('s-tipo').value; data.det = document.getElementById('s-det').value; }
-        if(tipo === 'educacion') { data.tit = document.getElementById('e-tit').value; data.det = document.getElementById('e-det').value; }
+        let data = { autor: usuario, fecha: new Date().toLocaleDateString(), estado: "Firme (Art. 7)" };
         
-        push(ref(db, `${path}/${tipo}`), data);
-        cerrarModales();
+        if(tipo === 'gastos' || tipo === 'presupuestos') {
+            const con = document.getElementById(tipo==='gastos'?'g-con':'p-con').value;
+            const mon = document.getElementById(tipo==='gastos'?'g-mon':'p-mon').value;
+            let clase = "Ordinario";
+            if(["ingles","medico","farmacia","colegio","matricula","ortodoncia"].some(p => con.toLowerCase().includes(p))) clase = "Extraordinario";
+            data.con = con; data.mon = mon; data.clase = clase;
+            if(tipo === 'presupuestos') { data.estado = "Pendiente (5 días)"; let v = new Date(); v.setDate(v.getDate()+5); data.vence = v.toLocaleDateString(); }
+        } else {
+            data.det = document.getElementById(tipo==='salud'?'s-det':'e-det').value;
+        }
+
+        push(ref(db, `${path}/${tipo}`), data); cerrarModales();
+    }
+
+    function accionar(id, tipo, accion) {
+        const { db, ref, set } = window._fb;
+        if(accion === 'objetar') {
+            const m = prompt("Motivo de objeción (Art. 7):");
+            if(m) { set(ref(db, `${path}/${tipo}/${id}/estado`), "OBJETADO: " + m); set(ref(db, `${path}/${tipo}/${id}/destino`), "REMITIDO A EXPEDIENTE"); }
+        } else { set(ref(db, `${path}/${tipo}/${id}/estado`), "CONFORMADO"); }
     }
 
     function conectarFirebase() {
         const { db, ref, onValue } = window._fb;
-        onValue(ref(db, `${path}/mensajes`), (snap) => {
+        onValue(ref(db, `${path}/mensajes`), snap => {
             const box = document.getElementById('chat-box'); box.innerHTML = "";
-            snap.forEach(c => { const m = c.val(); box.innerHTML += `<div class="msg ${m.user === usuario ? 'yo' : 'otro'}"><b>${m.user}</b><br>${m.texto}</div>`; });
+            snap.forEach(c => { const m = c.val(); box.innerHTML += `<div style="padding:8px; border-radius:10px; font-size:12px; margin-bottom:5px; align-self:${m.user===usuario?'flex-end':'flex-start'}; background:${m.user===usuario?'var(--navy)':'#eee'}; color:${m.user===usuario?'white':'black'}"><b>${m.user}:</b><br>${m.texto}</div>`; });
             box.scrollTop = box.scrollHeight;
         });
-        onValue(ref(db, `${path}/gastos`), (snap) => {
-            const l = document.getElementById('lista-gastos'); l.innerHTML = "";
-            snap.forEach(c => { 
-                const g = c.val();
-                let color = "#666"; 
-                if(g.clase === "Extraordinario") color = "var(--navy)";
-                if(g.clase === "Ordinario") color = "var(--amber)";
-                l.innerHTML += `<div class="card" style="border-left: 5px solid ${color}">
-                    <span class="badge-tipo" style="color:${color}; background:rgba(0,0,0,0.05)">${g.clase}</span><br>
-                    <b>${g.con}</b><br>
-                    <span style="color:var(--navy); font-size:18px">$${g.mon}</span><br>
-                    <small>${g.autor} - ${g.fecha}</small>
-                </div>`;
+        
+        const monitor = (tipo, divId) => {
+            onValue(ref(db, `${path}/${tipo}`), snap => {
+                const l = document.getElementById(divId); l.innerHTML = "";
+                snap.forEach(c => {
+                    const d = c.val(); const id = c.key; const esObj = d.estado.includes("OBJETADO");
+                    const col = esObj ? "var(--red)" : (d.clase === "Extraordinario" ? "var(--navy)" : (tipo==='salud'?'var(--green)':'var(--amber)'));
+                    l.innerHTML += `<div class="card" style="border-left:5px solid ${col}">
+                        ${d.clase ? `<span class="badge" style="background:${col}; color:white">${d.clase}</span>` : `<span class="badge" style="background:${col}; color:white">${tipo}</span>`}
+                        <span style="float:right; font-size:9px; color:${esObj?'red':'green'}">${d.estado}</span><br>
+                        <b>${d.con || d.det.substring(0,20)+'...'}</b><br>${d.mon ? `<span>$${d.mon}</span><br>` : ''}
+                        <small>${d.autor} - ${d.fecha}</small>
+                        ${(!esObj && d.autor !== usuario && (tipo==='gastos'||tipo==='presupuestos')) ? `<br><button class="btn-main" style="width:auto; padding:5px 10px; font-size:10px" onclick="accionar('${id}','${tipo}','aprobar')">CONFORMAR</button> <button class="btn-main" style="width:auto; padding:5px 10px; font-size:10px; background:white; color:red; border:1px solid red" onclick="accionar('${id}','${tipo}','objetar')">OBJETAR</button>` : ''}
+                        ${d.destino ? `<div style="font-size:10px; color:red; font-weight:bold; margin-top:5px">📍 ${d.destino}</div>` : ''}
+                    </div>`;
+                });
             });
-        });
-        onValue(ref(db, `${path}/salud`), (snap) => {
-            const l = document.getElementById('lista-salud'); l.innerHTML = "";
-            snap.forEach(c => { const s = c.val(); l.innerHTML += `<div class="card" style="border-left: 5px solid #1A6B3A"><b>${s.tipo}</b><br>${s.det}<br><small>${s.autor} - ${s.fecha}</small></div>`; });
-        });
-        onValue(ref(db, `${path}/educacion`), (snap) => {
-            const l = document.getElementById('lista-edu'); l.innerHTML = "";
-            snap.forEach(c => { const e = c.val(); l.innerHTML += `<div class="card" style="border-left: 5px solid var(--gold)"><b>${e.tit}</b><br>${e.det}<br><small>${e.autor} - ${e.fecha}</small></div>`; });
-        });
+        };
+        monitor('gastos', 'lista-gastos'); monitor('presupuestos', 'lista-presu'); monitor('salud', 'lista-salud'); monitor('escuela', 'lista-escuela');
     }
     function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
     function cerrarModales() { document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); }
