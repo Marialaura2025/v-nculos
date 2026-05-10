@@ -1,1467 +1,196 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VÍNCULOS — Plataforma Judicial</title>
-<style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VÍNCULOS — Plataforma Judicial</title>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+        import { getDatabase, ref, push, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-  :root {
-    --navy:    #1A3A5C;
-    --navy2:   #0F2540;
-    --gold:    #C8A84B;
-    --gold2:   #E8C86A;
-    --cream:   #F7F4EE;
-    --paper:   #FDFBF7;
-    --ink:     #1C1C1E;
-    --ink2:    #444;
-    --muted:   #888;
-    --border:  #DDD8CE;
-    --green:   #1A6B3A;
-    --green-bg:#E8F5EE;
-    --red:     #8B1A1A;
-    --red-bg:  #FAEAEA;
-    --amber:   #7A4F1A;
-    --amber-bg:#FDF3E3;
-    --shadow:  0 2px 16px rgba(26,58,92,.10);
-    --shadow2: 0 8px 32px rgba(26,58,92,.14);
-    --r:       10px;
-  }
+        const firebaseConfig = {
+            databaseURL: "https://vinculos-app-default-rtdb.firebaseio.com/"
+        };
 
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-    background: var(--cream);
-    color: var(--ink);
-    min-height: 100vh;
-  }
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        window._fb = { db, ref, push, onValue, set };
+    </script>
 
-  /* ─── LOGIN ─────────────────────────────────────── */
-  #login-screen {
-    min-height: 100vh;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background: var(--navy2);
-    position: relative;
-    overflow: hidden;
-  }
-  #login-screen::before {
-    content: '';
-    position: absolute;
-    width: 600px; height: 600px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(200,168,75,.15) 0%, transparent 70%);
-    top: -200px; right: -100px;
-  }
-  #login-screen::after {
-    content: '';
-    position: absolute;
-    width: 400px; height: 400px;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(200,168,75,.10) 0%, transparent 70%);
-    bottom: -100px; left: -50px;
-  }
-  .login-card {
-    background: var(--paper);
-    border-radius: 16px;
-    padding: 48px;
-    width: 100%;
-    max-width: 420px;
-    box-shadow: 0 24px 64px rgba(0,0,0,.4);
-    position: relative;
-    z-index: 1;
-    animation: fadeUp .5s ease both;
-  }
-  @keyframes fadeUp {
-    from { opacity:0; transform: translateY(20px); }
-    to   { opacity:1; transform: translateY(0); }
-  }
-  .login-logo {
-    text-align: center;
-    margin-bottom: 32px;
-  }
-  .login-logo .marca {
-    font-family: Georgia, 'Times New Roman', serif;
-    font-size: 36px;
-    font-weight: 600;
-    color: var(--navy);
-    letter-spacing: -.5px;
-  }
-  .login-logo .sub {
-    font-size: 12px;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: .12em;
-    margin-top: 4px;
-  }
-  .login-logo .escudo {
-    width: 56px; height: 56px;
-    background: var(--navy);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    margin: 0 auto 16px;
-    font-size: 24px;
-  }
-  .field { margin-bottom: 16px; }
-  .field label {
-    display: block;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: .08em;
-    margin-bottom: 6px;
-  }
-  .field input {
-    width: 100%;
-    padding: 12px 14px;
-    border: 1.5px solid var(--border);
-    border-radius: var(--r);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-    font-size: 15px;
-    color: var(--ink);
-    background: var(--cream);
-    transition: border-color .2s;
-    outline: none;
-  }
-  .field input:focus { border-color: var(--navy); background: white; }
-  .btn-primary {
-    width: 100%;
-    padding: 14px;
-    background: var(--navy);
-    color: white;
-    border: none;
-    border-radius: var(--r);
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-    font-size: 15px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background .2s, transform .1s;
-    margin-top: 8px;
-  }
-  .btn-primary:hover { background: var(--navy2); }
-  .btn-primary:active { transform: scale(.98); }
-  .login-nota {
-    text-align: center;
-    font-size: 12px;
-    color: var(--muted);
-    margin-top: 20px;
-    line-height: 1.5;
-  }
-  .demo-chips {
-    display: flex; gap: 8px; flex-wrap: wrap;
-    margin-top: 16px;
-  }
-  .demo-chip {
-    flex: 1;
-    padding: 8px 10px;
-    background: var(--cream);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    font-size: 11px;
-    color: var(--navy);
-    cursor: pointer;
-    text-align: center;
-    transition: background .15s;
-    font-weight: 500;
-  }
-  .demo-chip:hover { background: var(--border); }
-
-  /* ─── APP SHELL ──────────────────────────────────── */
-  #app { display: none; min-height: 100vh; }
-
-  .topbar {
-    background: var(--navy);
-    padding: 0 20px;
-    height: 56px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    position: sticky; top: 0; z-index: 100;
-    box-shadow: 0 2px 12px rgba(0,0,0,.2);
-  }
-  .topbar-brand {
-    font-family: Georgia, 'Times New Roman', serif;
-    font-size: 20px;
-    font-weight: 600;
-    color: white;
-    letter-spacing: -.3px;
-  }
-  .topbar-brand span { color: var(--gold2); }
-  .topbar-info {
-    display: flex; align-items: center; gap: 12px;
-  }
-  .topbar-exp {
-    font-size: 11px;
-    color: rgba(255,255,255,.6);
-    text-align: right;
-  }
-  .topbar-exp strong { color: white; display: block; }
-  .topbar-avatar {
-    width: 34px; height: 34px;
-    border-radius: 50%;
-    background: var(--gold);
-    display: flex; align-items: center; justify-content: center;
-    font-weight: 700;
-    font-size: 13px;
-    color: var(--navy2);
-    cursor: pointer;
-    flex-shrink: 0;
-  }
-  .logout-btn {
-    background: none; border: none;
-    color: rgba(255,255,255,.5);
-    font-size: 11px; cursor: pointer;
-    padding: 4px 8px;
-    border-radius: 6px;
-    transition: color .2s;
-  }
-  .logout-btn:hover { color: white; }
-
-  .nav-tabs {
-    background: white;
-    border-bottom: 2px solid var(--border);
-    display: flex;
-    overflow-x: auto;
-    scrollbar-width: none;
-    position: sticky; top: 56px; z-index: 99;
-    box-shadow: 0 2px 8px rgba(0,0,0,.06);
-  }
-  .nav-tabs::-webkit-scrollbar { display: none; }
-  .nav-tab {
-    flex-shrink: 0;
-    padding: 14px 20px;
-    border: none;
-    background: none;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--muted);
-    cursor: pointer;
-    border-bottom: 2.5px solid transparent;
-    margin-bottom: -2px;
-    transition: color .2s, border-color .2s;
-    display: flex; align-items: center; gap: 6px;
-    white-space: nowrap;
-  }
-  .nav-tab:hover { color: var(--navy); }
-  .nav-tab.active { color: var(--navy); border-bottom-color: var(--gold); font-weight: 600; }
-  .tab-badge {
-    background: var(--red); color: white;
-    font-size: 10px; font-weight: 700;
-    padding: 1px 5px; border-radius: 10px;
-    min-width: 16px; text-align: center;
-  }
-
-  .main { padding: 24px 20px 80px; max-width: 780px; margin: 0 auto; }
-
-  .section { display: none; }
-  .section.active { display: block; animation: fadeIn .25s ease; }
-  @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-
-  /* ─── ALERTA DE PLAZO ────────────────────────────── */
-  .alerta-plazo {
-    background: var(--amber-bg);
-    border: 1.5px solid var(--amber);
-    border-radius: var(--r);
-    padding: 12px 16px;
-    font-size: 13px;
-    color: var(--amber);
-    font-weight: 500;
-    margin-bottom: 20px;
-    display: flex; align-items: center; gap: 10px;
-  }
-
-  /* ─── MENSAJES ───────────────────────────────────── */
-  .chat-window {
-    background: white;
-    border-radius: var(--r);
-    border: 1.5px solid var(--border);
-    overflow: hidden;
-    box-shadow: var(--shadow);
-    display: flex;
-    flex-direction: column;
-    height: 520px;
-  }
-  .chat-header {
-    background: var(--cream);
-    padding: 14px 18px;
-    border-bottom: 1px solid var(--border);
-    display: flex; align-items: center; gap: 10px;
-  }
-  .chat-header-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--green);
-  }
-  .chat-header-text { font-size: 13px; font-weight: 600; color: var(--navy); }
-  .chat-header-sub { font-size: 11px; color: var(--muted); }
-  .chat-messages {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    background: var(--cream);
-  }
-  .msg {
-    max-width: 72%;
-    display: flex;
-    flex-direction: column;
-    gap: 3px;
-  }
-  .msg.yo { align-self: flex-end; align-items: flex-end; }
-  .msg.otro { align-self: flex-start; align-items: flex-start; }
-  .msg-burbuja {
-    padding: 10px 14px;
-    border-radius: 14px;
-    font-size: 14px;
-    line-height: 1.5;
-    position: relative;
-  }
-  .msg.yo .msg-burbuja {
-    background: var(--navy);
-    color: white;
-    border-bottom-right-radius: 4px;
-  }
-  .msg.otro .msg-burbuja {
-    background: white;
-    color: var(--ink);
-    border: 1px solid var(--border);
-    border-bottom-left-radius: 4px;
-  }
-  .msg-meta {
-    font-size: 10px;
-    color: var(--muted);
-    display: flex; align-items: center; gap: 4px;
-    font-family: 'Courier New', Courier, monospace;
-  }
-  .msg-nombre { font-weight: 600; color: var(--navy); font-size: 11px; margin-bottom: 2px; }
-  .msg-archivo {
-    background: rgba(255,255,255,.15);
-    border-radius: 8px;
-    padding: 6px 10px;
-    font-size: 12px;
-    margin-top: 6px;
-    display: flex; align-items: center; gap: 6px;
-    cursor: pointer;
-  }
-  .msg.otro .msg-archivo { background: var(--cream); }
-  .chat-input-area {
-    padding: 14px 16px;
-    border-top: 1px solid var(--border);
-    background: white;
-    display: flex; gap: 10px; align-items: flex-end;
-  }
-  .chat-input {
-    flex: 1;
-    border: 1.5px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 14px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-    font-size: 14px;
-    resize: none;
-    outline: none;
-    max-height: 100px;
-    min-height: 40px;
-    transition: border-color .2s;
-  }
-  .chat-input:focus { border-color: var(--navy); }
-  .chat-btns { display: flex; gap: 6px; }
-  .btn-icon {
-    width: 38px; height: 38px;
-    border-radius: 10px;
-    border: 1.5px solid var(--border);
-    background: var(--cream);
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px;
-    transition: background .15s;
-  }
-  .btn-icon:hover { background: var(--border); }
-  .btn-send {
-    width: 38px; height: 38px;
-    border-radius: 10px;
-    border: none;
-    background: var(--navy);
-    color: white;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 16px;
-    transition: background .15s;
-  }
-  .btn-send:hover { background: var(--navy2); }
-  .aviso-inalterable {
-    text-align: center;
-    font-size: 11px;
-    color: var(--muted);
-    padding: 8px;
-    background: var(--cream);
-    border-top: 1px solid var(--border);
-  }
-
-  /* ─── CALENDARIO ─────────────────────────────────── */
-  .cal-mes {
-    background: white;
-    border-radius: var(--r);
-    border: 1.5px solid var(--border);
-    overflow: hidden;
-    box-shadow: var(--shadow);
-    margin-bottom: 20px;
-  }
-  .cal-header {
-    background: var(--navy);
-    color: white;
-    padding: 16px 20px;
-    display: flex; justify-content: space-between; align-items: center;
-  }
-  .cal-titulo { font-family: Georgia, 'Times New Roman', serif; font-size: 18px; font-weight: 600; }
-  .cal-nav { background: none; border: none; color: white; font-size: 18px; cursor: pointer; padding: 4px 8px; border-radius: 6px; }
-  .cal-nav:hover { background: rgba(255,255,255,.15); }
-  .cal-grid { display: grid; grid-template-columns: repeat(7,1fr); }
-  .cal-day-name {
-    text-align: center;
-    padding: 10px 0;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: .06em;
-    border-bottom: 1px solid var(--border);
-  }
-  .cal-day {
-    min-height: 52px;
-    padding: 6px;
-    border-right: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-    position: relative;
-    cursor: pointer;
-    transition: background .15s;
-  }
-  .cal-day:hover { background: var(--cream); }
-  .cal-day.vacio { background: var(--cream); opacity: .4; cursor: default; }
-  .cal-day.hoy { background: rgba(26,58,92,.06); }
-  .cal-day-num {
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--ink2);
-  }
-  .cal-day.hoy .cal-day-num {
-    background: var(--navy);
-    color: white;
-    width: 22px; height: 22px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 11px;
-    font-weight: 700;
-  }
-  .cal-evento {
-    font-size: 10px;
-    padding: 2px 5px;
-    border-radius: 4px;
-    margin-top: 2px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-weight: 500;
-  }
-  .cal-evento.visita { background: rgba(26,58,92,.12); color: var(--navy); }
-  .cal-evento.cumplido { background: var(--green-bg); color: var(--green); }
-  .cal-evento.incumplido { background: var(--red-bg); color: var(--red); }
-  .cal-leyenda {
-    padding: 12px 20px;
-    display: flex; gap: 16px; flex-wrap: wrap;
-    border-top: 1px solid var(--border);
-    background: var(--cream);
-  }
-  .leyenda-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--ink2); }
-  .leyenda-dot { width: 10px; height: 10px; border-radius: 3px; }
-
-  /* ─── TARJETAS COMPARTIDAS ───────────────────────── */
-  .card {
-    background: white;
-    border-radius: var(--r);
-    border: 1.5px solid var(--border);
-    padding: 18px 20px;
-    margin-bottom: 12px;
-    box-shadow: var(--shadow);
-    transition: box-shadow .2s;
-  }
-  .card:hover { box-shadow: var(--shadow2); }
-  .card-header {
-    display: flex; justify-content: space-between; align-items: flex-start;
-    margin-bottom: 10px;
-  }
-  .card-titulo { font-size: 15px; font-weight: 600; color: var(--navy); }
-  .card-sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .badge {
-    font-size: 11px;
-    font-weight: 600;
-    padding: 3px 10px;
-    border-radius: 20px;
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  .badge.pendiente { background: var(--amber-bg); color: var(--amber); }
-  .badge.aprobado  { background: var(--green-bg); color: var(--green); }
-  .badge.registrado { background: rgba(26,58,92,.1); color: var(--navy); }
-  .badge.vence-hoy { background: var(--red-bg); color: var(--red); }
-  .card-monto {
-    font-family: Georgia, 'Times New Roman', serif;
-    font-size: 22px;
-    font-weight: 600;
-    color: var(--navy);
-    margin-bottom: 6px;
-  }
-  .card-body { font-size: 13px; color: var(--ink2); line-height: 1.55; }
-  .card-footer {
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid var(--border);
-    display: flex; gap: 8px; flex-wrap: wrap;
-  }
-  .btn-sm {
-    padding: 6px 14px;
-    border-radius: 7px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    border: none;
-    transition: opacity .15s;
-  }
-  .btn-sm:hover { opacity: .85; }
-  .btn-sm.navy { background: var(--navy); color: white; }
-  .btn-sm.outline { background: none; border: 1.5px solid var(--border); color: var(--ink2); }
-  .btn-sm.green { background: var(--green); color: white; }
-  .btn-sm.red { background: var(--red); color: white; }
-
-  /* ─── PLAZO INDICATOR ────────────────────────────── */
-  .plazo-bar {
-    display: flex; align-items: center; gap: 8px;
-    font-size: 11px; color: var(--muted);
-    margin-top: 6px;
-  }
-  .plazo-track {
-    flex: 1; height: 4px;
-    background: var(--border);
-    border-radius: 2px;
-    overflow: hidden;
-  }
-  .plazo-fill {
-    height: 100%;
-    border-radius: 2px;
-    transition: width .3s;
-  }
-  .plazo-fill.ok { background: var(--green); }
-  .plazo-fill.warn { background: var(--amber); }
-  .plazo-fill.late { background: var(--red); }
-
-  /* ─── SECCIÓN ENCABEZADO ─────────────────────────── */
-  .section-header {
-    display: flex; justify-content: space-between; align-items: center;
-    margin-bottom: 20px;
-  }
-  .section-titulo {
-    font-family: Georgia, 'Times New Roman', serif;
-    font-size: 22px;
-    font-weight: 600;
-    color: var(--navy);
-  }
-  .section-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
-
-  /* ─── MODAL ──────────────────────────────────────── */
-  .modal-overlay {
-    display: none;
-    position: fixed; inset: 0;
-    background: rgba(0,0,0,.5);
-    z-index: 200;
-    align-items: center; justify-content: center;
-    padding: 20px;
-  }
-  .modal-overlay.open { display: flex; }
-  .modal {
-    background: white;
-    border-radius: 14px;
-    padding: 28px;
-    width: 100%; max-width: 440px;
-    box-shadow: 0 24px 64px rgba(0,0,0,.3);
-    animation: fadeUp .25s ease;
-  }
-  .modal-titulo {
-    font-family: Georgia, 'Times New Roman', serif;
-    font-size: 20px; font-weight: 600;
-    color: var(--navy);
-    margin-bottom: 20px;
-  }
-  .modal textarea {
-    width: 100%;
-    border: 1.5px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 14px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-    font-size: 14px;
-    resize: vertical;
-    min-height: 80px;
-    outline: none;
-    margin-bottom: 12px;
-  }
-  .modal textarea:focus { border-color: var(--navy); }
-  .modal select, .modal input[type=text], .modal input[type=number], .modal input[type=date] {
-    width: 100%;
-    border: 1.5px solid var(--border);
-    border-radius: 8px;
-    padding: 10px 14px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
-    font-size: 14px;
-    outline: none;
-    margin-bottom: 12px;
-    background: var(--cream);
-  }
-  .modal select:focus, .modal input:focus { border-color: var(--navy); }
-  .modal label { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; display: block; margin-bottom: 5px; }
-  .modal-footer { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
-  .upload-area {
-    border: 2px dashed var(--border);
-    border-radius: 8px;
-    padding: 20px;
-    text-align: center;
-    font-size: 13px;
-    color: var(--muted);
-    cursor: pointer;
-    margin-bottom: 12px;
-    transition: border-color .2s, background .2s;
-  }
-  .upload-area:hover { border-color: var(--navy); background: var(--cream); }
-  .upload-area .upload-icon { font-size: 24px; margin-bottom: 6px; }
-
-  /* ─── ESTADÍSTICAS ───────────────────────────────── */
-  .stats-row {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-    margin-bottom: 20px;
-  }
-  .stat-card {
-    background: white;
-    border-radius: var(--r);
-    border: 1.5px solid var(--border);
-    padding: 16px;
-    text-align: center;
-    box-shadow: var(--shadow);
-  }
-  .stat-num {
-    font-family: Georgia, 'Times New Roman', serif;
-    font-size: 28px; font-weight: 600;
-    color: var(--navy);
-  }
-  .stat-label { font-size: 11px; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: .06em; }
-
-  /* TOAST */
-  #toast {
-    position: fixed;
-    bottom: 24px; left: 50%;
-    transform: translateX(-50%) translateY(80px);
-    background: var(--navy);
-    color: white;
-    padding: 12px 24px;
-    border-radius: 30px;
-    font-size: 14px;
-    font-weight: 500;
-    box-shadow: 0 8px 24px rgba(0,0,0,.3);
-    z-index: 300;
-    transition: transform .3s ease;
-    white-space: nowrap;
-  }
-  #toast.show { transform: translateX(-50%) translateY(0); }
-
-  /* ─── TIPO GASTO ─────────────────────────────────── */
-  .tipo-gasto-btn {
-    display: flex;
-    gap: 14px;
-    align-items: flex-start;
-    border: 2px solid var(--border);
-    border-radius: 10px;
-    padding: 14px;
-    margin-bottom: 10px;
-    cursor: pointer;
-    transition: background .15s, box-shadow .15s;
-    background: white;
-  }
-  .tipo-gasto-btn:hover { background: var(--cream); box-shadow: var(--shadow); }
-  .tipo-gasto-icono {
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 18px;
-    flex-shrink: 0;
-    margin-top: 2px;
-  }
-  .tipo-gasto-titulo { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
-  .tipo-gasto-ejemplos { font-size: 12px; color: var(--muted); line-height: 1.5; margin-bottom: 4px; }
-  .tipo-gasto-nota { font-size: 12px; font-weight: 600; }
-
-  @media (max-width: 480px) {
-    .main { padding: 16px 12px 80px; }
-    .login-card { padding: 32px 24px; }
-    .stats-row { grid-template-columns: repeat(3,1fr); }
-    .stat-num { font-size: 22px; }
-  }
-</style>
+    <style>
+        /* Estilos simplificados para máxima compatibilidad */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        :root { --navy: #1A3A5C; --gold: #C8A84B; --cream: #F7F4EE; --paper: #FDFBF7; --red: #8B1A1A; --green: #1A6B3A; }
+        body { font-family: -apple-system, sans-serif; background: var(--cream); color: #1c1c1e; }
+        #login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #0F2540; }
+        .login-card { background: white; padding: 40px; border-radius: 16px; width: 350px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        #app { display: none; }
+        .topbar { background: var(--navy); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
+        .nav-tabs { background: white; display: flex; border-bottom: 1px solid #ddd; }
+        .nav-tab { flex: 1; padding: 15px; border: none; background: none; cursor: pointer; font-weight: 600; color: #666; }
+        .nav-tab.active { color: var(--navy); border-bottom: 3px solid var(--gold); }
+        .main { padding: 20px; max-width: 600px; margin: 0 auto; }
+        .section { display: none; }
+        .section.active { display: block; }
+        .card { background: white; padding: 15px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 15px; }
+        .chat-window { background: white; height: 400px; border-radius: 10px; border: 1px solid #ddd; display: flex; flex-direction: column; }
+        .chat-msgs { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
+        .msg { padding: 8px 12px; border-radius: 10px; font-size: 14px; max-width: 80%; }
+        .msg.yo { align-self: flex-end; background: var(--navy); color: white; }
+        .msg.otro { align-self: flex-start; background: #eee; }
+        .chat-input-area { padding: 10px; border-top: 1px solid #ddd; display: flex; gap: 5px; }
+        textarea { flex: 1; padding: 8px; border-radius: 5px; border: 1px solid #ddd; }
+        .modal-overlay { position: fixed; inset:0; background: rgba(0,0,0,0.7); display:none; align-items:center; justify-content:center; z-index:100; }
+        .modal { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 400px; }
+    </style>
 </head>
 <body>
 
-<!-- ═══════════════════════════════════ LOGIN ═══════════════════════════════ -->
 <div id="login-screen">
-  <div class="login-card">
-    <div class="login-logo">
-      <div class="escudo">⚖️</div>
-      <div class="marca">VÍNCULOS</div>
-      <div class="sub">Juzgado de Familia N° 9 · Morón</div>
+    <div class="login-card">
+        <h2 style="color:var(--navy); font-family:Georgia;">⚖️ VÍNCULOS</h2><br>
+        <button class="nav-tab active" style="width:100%; border:1px solid #ddd; margin-bottom:10px" onclick="entrar('madre')">👩 Laura García (Madre)</button>
+        <button class="nav-tab active" style="width:100%; border:1px solid #ddd" onclick="entrar('padre')">👨 Marcelo Ríos (Padre)</button>
     </div>
-    <div class="field">
-      <label>Usuario</label>
-      <input type="text" id="login-user" placeholder="usuario@vinculos.pba.gob.ar" value="garcia.laura@vinculos">
-    </div>
-    <div class="field">
-      <label>Contraseña</label>
-      <input type="password" id="login-pass" placeholder="••••••••" value="••••••••">
-    </div>
-    <button class="btn-primary" onclick="entrar('padre')">Ingresar</button>
-    <p style="text-align:center;font-size:12px;color:var(--muted);margin-top:16px;margin-bottom:8px;">— Ingresar como demo —</p>
-    <div class="demo-chips">
-      <div class="demo-chip" onclick="entrar('madre')">👩 Laura García<br><span style="color:var(--muted);font-size:10px">Progenitora</span></div>
-      <div class="demo-chip" onclick="entrar('padre')">👨 Marcelo Ríos<br><span style="color:var(--muted);font-size:10px">Progenitor</span></div>
-    </div>
-    <p class="login-nota">Plataforma judicial oficial · Uso obligatorio por resolución judicial<br>Todos los registros tienen valor probatorio</p>
-  </div>
 </div>
 
-<!-- ═══════════════════════════════════ APP ════════════════════════════════ -->
 <div id="app">
-
-  <div class="topbar">
-    <div class="topbar-brand">VÍN<span>CULOS</span></div>
-    <div class="topbar-info">
-      <div class="topbar-exp">
-        <strong id="topbar-nombre">—</strong>
-        Exp. FAM-09-2024-1847
-      </div>
-      <div class="topbar-avatar" id="topbar-avatar">—</div>
-      <button class="logout-btn" onclick="salir()">Salir</button>
+    <div class="topbar">
+        <span>VÍNCULOS Judicial</span>
+        <small id="user-display"></small>
     </div>
-  </div>
-
-  <div class="nav-tabs">
-    <button class="nav-tab active" onclick="irA('mensajes',this)">💬 Mensajes <span class="tab-badge" id="badge-msg">2</span></button>
-    <button class="nav-tab" onclick="irA('calendario',this)">📅 Régimen</button>
-    <button class="nav-tab" onclick="irA('gastos',this)">💸 Gastos <span class="tab-badge" id="badge-gastos">1</span></button>
-    <button class="nav-tab" onclick="irA('escuela',this)">🏫 Escuela</button>
-    <button class="nav-tab" onclick="irA('salud',this)">🏥 Salud</button>
-  </div>
-
-  <div class="main">
-
-    <!-- ── MENSAJES ──────────────────────────────────── -->
-    <div class="section active" id="sec-mensajes">
-      <div class="section-header">
-        <div>
-          <div class="section-titulo">Mensajes</div>
-          <div class="section-sub">Canal oficial supervisado por el juzgado · No se puede borrar ni editar</div>
-        </div>
-      </div>
-      <div class="chat-window">
-        <div class="chat-header">
-          <div class="chat-header-dot"></div>
-          <div>
-            <div class="chat-header-text" id="chat-con">Conversación con —</div>
-            <div class="chat-header-sub">Supervisado por Juzgado de Familia N° 9 · Morón</div>
-          </div>
-        </div>
-        <div class="chat-messages" id="chat-msgs">
-          <div class="msg otro">
-            <div class="msg-nombre" id="nombre-otro">—</div>
-            <div class="msg-burbuja">Hola. Quería avisarte que Sofía tiene turno con la pediatra el martes 7 a las 10hs en el Centro de Salud de Morón.</div>
-            <div class="msg-meta">Lun 2 jun · 09:14 hs ✓</div>
-          </div>
-          <div class="msg yo">
-            <div class="msg-burbuja">Perfecto, gracias por avisar. ¿La llevas vos o la llevo yo?</div>
-            <div class="msg-meta">Lun 2 jun · 09:31 hs ✓✓</div>
-          </div>
-          <div class="msg otro">
-            <div class="msg-nombre" id="nombre-otro2">—</div>
-            <div class="msg-burbuja">La llevo yo, es en mi semana. Después cargo el resumen en Salud.
-              <div class="msg-archivo">📎 resumen_turno_sofia.pdf</div>
+    <div class="nav-tabs">
+        <button class="nav-tab active" id="tab-msg" onclick="irA('mensajes')">Chat</button>
+        <button class="nav-tab" id="tab-gastos" onclick="irA('gastos')">Gastos</button>
+    </div>
+    <div class="main">
+        <div id="sec-mensajes" class="section active">
+            <div class="chat-window">
+                <div class="chat-msgs" id="chat-box"></div>
+                <div class="chat-input-area">
+                    <textarea id="msg-in" placeholder="Escribir mensaje oficial..."></textarea>
+                    <button onclick="procesarMensaje()" style="background:var(--navy); color:white; border:none; padding:10px; border-radius:5px;">Enviar</button>
+                </div>
             </div>
-            <div class="msg-meta">Lun 2 jun · 09:45 hs ✓✓</div>
-          </div>
-          <div class="msg yo">
-            <div class="msg-burbuja">Bien. Y el boletín del colegio llegó ayer, lo subí a Escuela.</div>
-            <div class="msg-meta">Mar 3 jun · 08:02 hs ✓✓</div>
-          </div>
         </div>
-        <div class="aviso-inalterable">🔒 Los mensajes no pueden editarse ni eliminarse · Registro con valor probatorio</div>
-        <div class="chat-input-area">
-          <textarea class="chat-input" id="msg-input" placeholder="Escribí tu mensaje..." rows="1"
-            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();enviarMsg();}"></textarea>
-          <div class="chat-btns">
-            <button class="btn-icon" title="Adjuntar archivo" onclick="toast('Adjuntar archivo — próximamente disponible')">📎</button>
-            <button class="btn-send" onclick="enviarMsg()">➤</button>
-          </div>
+        <div id="sec-gastos" class="section">
+            <button onclick="document.getElementById('m-gasto').style.display='flex'" style="width:100%; padding:10px; margin-bottom:10px; background:var(--navy); color:white; border-radius:5px; border:none;">+ Nuevo Gasto Extraordinario</button>
+            <div id="lista-gastos"></div>
         </div>
-      </div>
     </div>
-
-    <!-- ── CALENDARIO ────────────────────────────────── -->
-    <div class="section" id="sec-calendario">
-      <div class="section-header">
-        <div>
-          <div class="section-titulo">Régimen de comunicación</div>
-          <div class="section-sub">Calendario fijado por resolución judicial · Debés registrar cada encuentro</div>
-        </div>
-        <button class="btn-sm navy" onclick="abrirModalRegistro()">+ Registrar novedad</button>
-      </div>
-      <div class="alerta-plazo">⏰ Tenés 3 encuentros sin registrar. Plazo máximo: 24 horas del evento. Registralos para evitar apercibimientos.</div>
-      <div class="cal-mes">
-        <div class="cal-header">
-          <button class="cal-nav" onclick="cambiarMes(-1)">‹</button>
-          <div class="cal-titulo" id="cal-titulo">Junio 2025</div>
-          <button class="cal-nav" onclick="cambiarMes(1)">›</button>
-        </div>
-        <div class="cal-grid" id="cal-grid">
-          <!-- generado por JS -->
-        </div>
-        <div class="cal-leyenda">
-          <div class="leyenda-item"><div class="leyenda-dot" style="background:rgba(26,58,92,.2)"></div>Visita programada</div>
-          <div class="leyenda-item"><div class="leyenda-dot" style="background:var(--green)"></div>Cumplida</div>
-          <div class="leyenda-item"><div class="leyenda-dot" style="background:var(--red)"></div>No realizada</div>
-        </div>
-      </div>
-      <div class="stats-row">
-        <div class="stat-card"><div class="stat-num" style="color:var(--green)">8</div><div class="stat-label">Cumplidas</div></div>
-        <div class="stat-card"><div class="stat-num" style="color:var(--red)">1</div><div class="stat-label">No realizadas</div></div>
-        <div class="stat-card"><div class="stat-num">3</div><div class="stat-label">Sin registrar</div></div>
-      </div>
-    </div>
-
-    <!-- ── GASTOS ─────────────────────────────────────── -->
-    <div class="section" id="sec-gastos">
-      <div class="section-header">
-        <div>
-          <div class="section-titulo">Gastos extraordinarios</div>
-          <div class="section-sub">Debés cargar cada gasto dentro de las 48 hs de pagarlo</div>
-        </div>
-        <button class="btn-sm navy" onclick="abrirModalGasto()">+ Nuevo gasto</button>
-      </div>
-
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-titulo">Útiles escolares — 2° semestre</div>
-            <div class="card-sub">Cargado por Laura García · Mar 3 jun, 11:20 hs</div>
-          </div>
-          <div class="badge vence-hoy">Responder hoy</div>
-        </div>
-        <div class="card-monto">$ 28.500</div>
-        <div class="card-body">Compra de útiles para el segundo semestre. Factura adjunta.</div>
-        <div class="plazo-bar">
-          <span>Plazo respuesta:</span>
-          <div class="plazo-track"><div class="plazo-fill warn" style="width:75%"></div></div>
-          <span>18 hs restantes</span>
-        </div>
-        <div class="card-footer">
-          <button class="btn-sm green" onclick="aprobarGasto(this)">✓ Aprobar</button>
-          <button class="btn-sm red" onclick="toast('Para objetar un gasto escribí el motivo en mensajes y avisá al juzgado')">✕ Objetar</button>
-          <button class="btn-sm outline" onclick="toast('Abriendo comprobante...')">📎 Ver factura</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-titulo">Consulta médica — Pediatría</div>
-            <div class="card-sub">Cargado por Marcelo Ríos · Lun 2 jun, 14:05 hs</div>
-          </div>
-          <div class="badge aprobado">Aprobado</div>
-        </div>
-        <div class="card-monto">$ 12.000</div>
-        <div class="card-body">Consulta de control con la Dra. Méndez. Ticket adjunto.</div>
-        <div class="card-footer">
-          <button class="btn-sm outline" onclick="toast('Abriendo comprobante...')">📎 Ver ticket</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-titulo">Colonia de vacaciones — Julio</div>
-            <div class="card-sub">Cargado por Laura García · Vie 30 may, 09:00 hs</div>
-          </div>
-          <div class="badge aprobado">Aprobado</div>
-        </div>
-        <div class="card-monto">$ 85.000</div>
-        <div class="card-body">Inscripción a colonia de verano. Comprobante de pago adjunto.</div>
-        <div class="card-footer">
-          <button class="btn-sm outline" onclick="toast('Abriendo comprobante...')">📎 Ver comprobante</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── ESCUELA ─────────────────────────────────────── -->
-    <div class="section" id="sec-escuela">
-      <div class="section-header">
-        <div>
-          <div class="section-titulo">Información escolar</div>
-          <div class="section-sub">Ambos progenitores deben cargar lo que reciben · Plazo: 48 hs</div>
-        </div>
-        <button class="btn-sm navy" onclick="abrirModalEscuela()">+ Cargar info</button>
-      </div>
-
-      <div class="alerta-plazo">⏰ Recordá: tenés 48 horas para cargar cualquier comunicado o documento que te mande el colegio.</div>
-
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-titulo">Boletín — 1° bimestre 2025</div>
-            <div class="card-sub">Cargado por Laura García · Mar 3 jun, 08:30 hs · Escuela N° 14</div>
-          </div>
-          <div class="badge registrado">Registrado</div>
-        </div>
-        <div class="card-body">Calificaciones del primer bimestre. Promedio general: 8.4. Conducta: MB.</div>
-        <div class="card-footer">
-          <button class="btn-sm outline" onclick="toast('Abriendo boletín...')">📎 Ver boletín (PDF)</button>
-        </div>
-      </div>
-
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-titulo">Citación a reunión de padres</div>
-            <div class="card-sub">Cargado por Marcelo Ríos · Lun 2 jun, 19:00 hs</div>
-          </div>
-          <div class="badge registrado">Registrado</div>
-        </div>
-        <div class="card-body">Reunión de padres el viernes 7 de junio a las 18 hs. Presencia de al menos un progenitor obligatoria.</div>
-        <div class="card-footer">
-          <button class="btn-sm outline" onclick="toast('Abriendo citación...')">📎 Ver citación</button>
-          <button class="btn-sm navy" onclick="toast('Confirmación enviada al juzgado')">✓ Confirmar asistencia</button>
-        </div>
-      </div>
-
-      <div class="card" style="border-color:var(--red);background:var(--red-bg)">
-        <div class="card-header">
-          <div>
-            <div class="card-titulo" style="color:var(--red)">⚠ Informe de inasistencias</div>
-            <div class="card-sub">Recibido hace 3 días · Sin cargar por ningún progenitor</div>
-          </div>
-          <div class="badge" style="background:var(--red);color:white">Vencido</div>
-        </div>
-        <div class="card-body" style="color:var(--red)">Ninguno de los progenitores cargó este documento. El juzgado fue notificado automáticamente. Se aplica apercibimiento.</div>
-        <div class="card-footer">
-          <button class="btn-sm navy" onclick="abrirModalEscuela()">Cargar ahora</button>
-        </div>
-      </div>
-    </div>
-
-    <!-- ── SALUD ───────────────────────────────────────── -->
-    <div class="section" id="sec-salud">
-      <div class="section-header">
-        <div>
-          <div class="section-titulo">Información de salud</div>
-          <div class="section-sub">Ambos progenitores deben cargar novedades · Plazo: 48 hs · Visible para el juzgado y el equipo técnico</div>
-        </div>
-        <button class="btn-sm navy" onclick="abrirModalSalud()">+ Cargar novedad</button>
-      </div>
-
-      <div class="alerta-plazo">🔒 Los informes psicoterapéuticos que cargues son visibles para el juzgado y el equipo técnico interdisciplinario, pero no para el otro progenitor si el juzgado así lo dispone.</div>
-
-      <!-- Psicoterapia niño -->
-      <div class="card" style="border-left:4px solid var(--navy)">
-        <div class="card-header">
-          <div>
-            <div class="card-titulo">🧠 Informe psicoterapéutico — Sofía</div>
-            <div class="card-sub">Cargado por Laura García · Lun 2 jun · Lic. Fernández (psicóloga)</div>
-          </div>
-          <div class="badge registrado">Registrado</div>
-        </div>
-        <div class="card-body">Informe de seguimiento del proceso terapéutico. Sesiones semanales. Adjunto el informe completo de la profesional.</div>
-        <div style="margin-top:10px;padding:8px 12px;background:rgba(26,58,92,.06);border-radius:8px;font-size:12px;color:var(--navy);font-weight:500;">
-          👁 Visible para: el juzgado y el equipo técnico interdisciplinario
-        </div>
-        <div class="card-footer">
-          <button class="btn-sm outline" onclick="toast('Abriendo informe psicoterapéutico...')">📎 Ver informe (PDF)</button>
-        </div>
-      </div>
-
-      <!-- Psicoterapia progenitor -->
-      <div class="card" style="border-left:4px solid var(--navy)">
-        <div class="card-header">
-          <div>
-            <div class="card-titulo">🧠 Informe psicoterapéutico — progenitor/a</div>
-            <div class="card-sub">Cargado por Marcelo Ríos · Vie 30 may · Lic. Castro (psicólogo)</div>
-          </div>
-          <div class="badge registrado">Registrado</div>
-        </div>
-        <div class="card-body">Informe de evolución de tratamiento psicológico individual. Proceso en curso.</div>
-        <div style="margin-top:10px;padding:8px 12px;background:rgba(26,58,92,.06);border-radius:8px;font-size:12px;color:var(--navy);font-weight:500;">
-          👁 Visible para: el juzgado y el equipo técnico interdisciplinario
-        </div>
-        <div class="card-footer">
-          <button class="btn-sm outline" onclick="toast('Abriendo informe...')">📎 Ver informe (PDF)</button>
-        </div>
-      </div>
-
-      <!-- Médico -->
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-titulo">🩺 Turno pediatría — Dra. Méndez</div>
-            <div class="card-sub">Cargado por Marcelo Ríos · Lun 2 jun · Martes 7 jun, 10:00 hs</div>
-          </div>
-          <div class="badge registrado">Registrado</div>
-        </div>
-        <div class="card-body">Control de rutina. Sin novedades. Próximo turno: agosto. Indicaciones: continuar con vitamina D.</div>
-        <div style="margin-top:10px;padding:8px 12px;background:rgba(26,58,92,.06);border-radius:8px;font-size:12px;color:var(--navy);font-weight:500;">
-          👁 Visible para: ambos progenitores, el juzgado y el equipo técnico
-        </div>
-        <div class="card-footer">
-          <button class="btn-sm outline" onclick="toast('Abriendo resumen médico...')">📎 Ver resumen</button>
-        </div>
-      </div>
-
-      <!-- Medicación -->
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-titulo">💊 Medicación — Ibuprofeno</div>
-            <div class="card-sub">Cargado por Laura García · Dom 1 jun</div>
-          </div>
-          <div class="badge registrado">Registrado</div>
-        </div>
-        <div class="card-body">Sofía tuvo fiebre 38.5°. Se le administró ibuprofeno 200mg. Cedió a las 4 horas. Sin otros síntomas.</div>
-        <div style="margin-top:10px;padding:8px 12px;background:rgba(26,58,92,.06);border-radius:8px;font-size:12px;color:var(--navy);font-weight:500;">
-          👁 Visible para: ambos progenitores, el juzgado y el equipo técnico
-        </div>
-      </div>
-
-      <!-- Fonoaudiología -->
-      <div class="card">
-        <div class="card-header">
-          <div>
-            <div class="card-titulo">🗣 Tratamiento fonoaudiológico</div>
-            <div class="card-sub">Cargado por Laura García · Vie 30 may · Sesiones: martes y jueves</div>
-          </div>
-          <div class="badge registrado">Registrado</div>
-        </div>
-        <div class="card-body">Inicio de tratamiento con Lic. Romero. Sesiones de 45 min. Indicada por la escuela por dificultades en lectoescritura.</div>
-        <div style="margin-top:10px;padding:8px 12px;background:rgba(26,58,92,.06);border-radius:8px;font-size:12px;color:var(--navy);font-weight:500;">
-          👁 Visible para: ambos progenitores, el juzgado y el equipo técnico
-        </div>
-        <div class="card-footer">
-          <button class="btn-sm outline" onclick="toast('Abriendo indicaciones...')">📎 Ver indicaciones</button>
-        </div>
-      </div>
-    </div>
-
-  </div><!-- /main -->
-</div><!-- /app -->
-
-<!-- ═══════════════════════════════ MODALES ═══════════════════════════════ -->
-
-<!-- Modal registro encuentro -->
-<div class="modal-overlay" id="modal-registro">
-  <div class="modal">
-    <div class="modal-titulo">Registrar encuentro</div>
-    <label>Fecha del encuentro</label>
-    <input type="date" id="reg-fecha">
-    <label>¿Se realizó el encuentro?</label>
-    <select id="reg-tipo">
-      <option value="">— Seleccioná —</option>
-      <option>Sí, se realizó</option>
-      <option>No se realizó — motivo del progenitor conviviente</option>
-      <option>No se realizó — motivo del progenitor no conviviente</option>
-      <option>No se realizó — acuerdo entre partes</option>
-    </select>
-    <label>Observaciones (opcional)</label>
-    <textarea placeholder="Agregá cualquier novedad relevante..."></textarea>
-    <div class="upload-area" onclick="toast('Adjuntar archivo — próximamente disponible')">
-      <div class="upload-icon">📎</div>
-      Adjuntar foto o PDF (opcional)
-    </div>
-    <div class="modal-footer">
-      <button class="btn-sm outline" onclick="cerrarModales()">Cancelar</button>
-      <button class="btn-sm navy" onclick="guardarRegistro()">Guardar registro</button>
-    </div>
-  </div>
 </div>
 
-<!-- Modal nuevo gasto -->
-<div class="modal-overlay" id="modal-gasto">
-  <div class="modal">
-    <div class="modal-titulo">Nuevo gasto</div>
-
-    <!-- PASO 1: clasificación -->
-    <div id="gasto-paso1">
-      <p style="font-size:14px;color:var(--ink2);margin-bottom:16px;line-height:1.55;">Antes de continuar, indicá qué tipo de gasto es. Esto evita conflictos y queda registrado en el expediente.</p>
-
-      <div class="tipo-gasto-btn" onclick="elegirTipoGasto('extraordinario')" style="border-color:var(--navy)">
-        <div class="tipo-gasto-icono" style="background:rgba(26,58,92,.1)">🔵</div>
-        <div>
-          <div class="tipo-gasto-titulo" style="color:var(--navy)">Extraordinario</div>
-          <div class="tipo-gasto-ejemplos">Médico especialista · Útiles de temporada · Viaje escolar · Tratamiento · Ropa de abrigo · Actividad extracurricular</div>
-          <div class="tipo-gasto-nota" style="color:var(--navy)">Genera obligación de pago del otro progenitor</div>
-        </div>
-      </div>
-
-      <div class="tipo-gasto-btn" onclick="elegirTipoGasto('ordinario')" style="border-color:var(--amber)">
-        <div class="tipo-gasto-icono" style="background:var(--amber-bg)">🟡</div>
-        <div>
-          <div class="tipo-gasto-titulo" style="color:var(--amber)">Ordinario</div>
-          <div class="tipo-gasto-ejemplos">Comida · Transporte escolar habitual · Fotocopias · Higiene · Gastos cotidianos cubiertos por la cuota</div>
-          <div class="tipo-gasto-nota" style="color:var(--amber)">Ya está incluido en la cuota alimentaria — se registra como informativo</div>
-        </div>
-      </div>
-
-      <div class="tipo-gasto-btn" onclick="elegirTipoGasto('adeterminar')" style="border-color:var(--muted)">
-        <div class="tipo-gasto-icono" style="background:var(--cream)">❓</div>
-        <div>
-          <div class="tipo-gasto-titulo" style="color:var(--ink2)">No sé qué tipo es</div>
-          <div class="tipo-gasto-ejemplos">Cuando tenés dudas sobre la clasificación del gasto</div>
-          <div class="tipo-gasto-nota" style="color:var(--muted)">Se registra y el juzgado recibe una alerta para resolverlo</div>
-        </div>
-      </div>
-
-      <div class="modal-footer" style="margin-top:4px">
-        <button class="btn-sm outline" onclick="cerrarModales()">Cancelar</button>
-      </div>
+<div class="modal-overlay" id="m-ia">
+    <div class="modal">
+        <h4 style="color:var(--red)">⚠️ Perspectiva de Género</h4><br>
+        <p style="font-size:12px; color:#666">El sistema detectó que tu mensaje puede escalar el conflicto.</p><br>
+        <div style="background:#f9f9f9; padding:10px; border-radius:5px; font-style:italic; font-size:13px" id="msg-orig"></div><br>
+        <p style="font-weight:bold; font-size:13px; color:var(--green)">Sugerencia Neutral:</p>
+        <div style="background:#e8f5ee; padding:10px; border-radius:5px; font-size:13px" id="msg-sug"></div><br>
+        <button onclick="enviarFinal('sug')" style="width:100%; padding:10px; background:var(--green); color:white; border:none; border-radius:5px; margin-bottom:10px">Usar sugerencia neutral</button>
+        <button onclick="document.getElementById('m-ia').style.display='none'" style="width:100%; background:none; border:none; color:#999; font-size:12px">Editar mi mensaje</button>
     </div>
-
-    <!-- PASO 2: formulario -->
-    <div id="gasto-paso2" style="display:none">
-      <div id="gasto-tipo-aviso" style="border-radius:8px;padding:10px 14px;font-size:13px;font-weight:500;margin-bottom:16px;line-height:1.5;"></div>
-      <label>Concepto</label>
-      <input type="text" id="gasto-concepto" placeholder="Ej: Libros escolares, turno médico...">
-      <label>Monto ($)</label>
-      <input type="number" id="gasto-monto" placeholder="0.00">
-      <label>Fecha del gasto</label>
-      <input type="date" id="gasto-fecha">
-      <div class="upload-area" onclick="toast('Adjuntar comprobante — próximamente disponible')">
-        <div class="upload-icon">📄</div>
-        Adjuntar factura o ticket (obligatorio para extraordinarios)
-      </div>
-      <div class="modal-footer">
-        <button class="btn-sm outline" onclick="volverPaso1()">← Atrás</button>
-        <button class="btn-sm navy" onclick="guardarGasto()">Cargar gasto</button>
-      </div>
-    </div>
-
-  </div>
 </div>
 
-<!-- Modal escuela -->
-<div class="modal-overlay" id="modal-escuela">
-  <div class="modal">
-    <div class="modal-titulo">Cargar información escolar</div>
-    <label>Tipo de documento</label>
-    <select>
-      <option>Boletín de calificaciones</option>
-      <option>Comunicado de la escuela</option>
-      <option>Citación a reunión</option>
-      <option>Informe de inasistencias</option>
-      <option>Otra novedad</option>
-    </select>
-    <label>Descripción</label>
-    <textarea placeholder="Describí brevemente el contenido..."></textarea>
-    <div class="upload-area" onclick="toast('Adjuntar documento — próximamente disponible')">
-      <div class="upload-icon">🏫</div>
-      Adjuntar documento (foto o PDF)
+<div class="modal-overlay" id="m-gasto">
+    <div class="modal">
+        <h3>Nuevo Gasto</h3><br>
+        <input type="text" id="g-con" placeholder="Concepto">
+        <input type="number" id="g-mon" placeholder="Monto $">
+        <button onclick="guardarGasto()" style="width:100%; padding:10px; background:var(--navy); color:white; border:none; border-radius:5px;">Cargar en Expediente</button>
+        <button onclick="document.getElementById('m-gasto').style.display='none'" style="width:100%; background:none; border:none; margin-top:10px">Cerrar</button>
     </div>
-    <div class="modal-footer">
-      <button class="btn-sm outline" onclick="cerrarModales()">Cancelar</button>
-      <button class="btn-sm navy" onclick="guardarEscuela()">Cargar información</button>
-    </div>
-  </div>
 </div>
-
-<!-- Modal salud -->
-<div class="modal-overlay" id="modal-salud">
-  <div class="modal">
-    <div class="modal-titulo">Cargar novedad de salud</div>
-    <label>¿De quién es la información?</label>
-    <select id="salud-quien" onchange="actualizarVisibilidadSalud()">
-      <option value="nino">De mi hijo/a</option>
-      <option value="progenitor">Mía (progenitor/a)</option>
-    </select>
-    <label>Tipo de documento o novedad</label>
-    <select id="salud-tipo" onchange="actualizarVisibilidadSalud()">
-      <option value="medico">Turno o consulta médica</option>
-      <option value="medicacion">Medicación administrada</option>
-      <option value="diagnostico">Diagnóstico</option>
-      <option value="psi">Informe psicoterapéutico</option>
-      <option value="tratamiento">Inicio de tratamiento</option>
-      <option value="estudio">Estudio o análisis</option>
-      <option value="otro">Otro documento clínico</option>
-    </select>
-
-    <!-- aviso de visibilidad dinámico -->
-    <div id="salud-visibilidad" style="padding:10px 14px;border-radius:8px;font-size:13px;font-weight:500;margin-bottom:12px;line-height:1.5;background:rgba(26,58,92,.07);color:var(--navy);border:1.5px solid rgba(26,58,92,.2);">
-      👁 Visible para: ambos progenitores, el juzgado y el equipo técnico
-    </div>
-
-    <label>Descripción</label>
-    <textarea placeholder="Describí brevemente la novedad..."></textarea>
-    <div class="upload-area" onclick="toast('Adjuntar documento — próximamente disponible')">
-      <div class="upload-icon">🏥</div>
-      Adjuntar documento clínico (PDF, foto de receta, informe...)
-    </div>
-    <div class="modal-footer">
-      <button class="btn-sm outline" onclick="cerrarModales()">Cancelar</button>
-      <button class="btn-sm navy" onclick="guardarSalud()">Cargar novedad</button>
-    </div>
-  </div>
-</div>
-
-<div id="toast">Registro guardado correctamente</div>
 
 <script>
-// ─── ESTADO ───────────────────────────────────────────────────────────────
-const usuarios = {
-  madre: { nombre: 'Laura García', inicial: 'LG', otro: 'Marcelo Ríos' },
-  padre: { nombre: 'Marcelo Ríos', inicial: 'MR', otro: 'Laura García' }
-};
-let usuarioActual = null;
+    let usuario = "";
+    const path = "expedientes/FAM-09-2024-1847";
 
-// ─── LOGIN ────────────────────────────────────────────────────────────────
-function entrar(tipo) {
-  usuarioActual = tipo;
-  const u = usuarios[tipo];
-  document.getElementById('topbar-nombre').textContent = u.nombre;
-  document.getElementById('topbar-avatar').textContent = u.inicial;
-  document.getElementById('chat-con').textContent = `Conversación con ${u.otro}`;
-  document.querySelectorAll('.msg-nombre').forEach(el => el.textContent = u.otro);
-  document.getElementById('login-screen').style.display = 'none';
-  document.getElementById('app').style.display = 'block';
-  generarCalendario();
-}
-
-function salir() {
-  document.getElementById('login-screen').style.display = 'flex';
-  document.getElementById('app').style.display = 'none';
-  usuarioActual = null;
-}
-
-// ─── NAVEGACIÓN ───────────────────────────────────────────────────────────
-function irA(sec, btn) {
-  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-  document.getElementById('sec-' + sec).classList.add('active');
-  btn.classList.add('active');
-}
-
-// ─── MENSAJES ─────────────────────────────────────────────────────────────
-function enviarMsg() {
-  const input = document.getElementById('msg-input');
-  const texto = input.value.trim();
-  if (!texto) return;
-  const msgs = document.getElementById('chat-msgs');
-  const now = new Date();
-  const hora = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
-  const div = document.createElement('div');
-  div.className = 'msg yo';
-  div.innerHTML = `<div class="msg-burbuja">${texto}</div><div class="msg-meta">Hoy · ${hora} hs ✓</div>`;
-  msgs.appendChild(div);
-  msgs.scrollTop = msgs.scrollHeight;
-  input.value = '';
-  const badge = document.getElementById('badge-msg');
-  const n = parseInt(badge.textContent);
-  if (n > 0) badge.textContent = n - 1;
-  if (badge.textContent === '0') badge.style.display = 'none';
-}
-
-// ─── CALENDARIO ───────────────────────────────────────────────────────────
-let calFecha = new Date(2025, 5, 1); // junio 2025
-
-const eventos = {
-  '2025-6-1':  'visita',
-  '2025-6-4':  'cumplido',
-  '2025-6-7':  'visita',
-  '2025-6-8':  'cumplido',
-  '2025-6-11': 'cumplido',
-  '2025-6-14': 'visita',
-  '2025-6-15': 'incumplido',
-  '2025-6-18': 'cumplido',
-  '2025-6-21': 'visita',
-  '2025-6-22': 'cumplido',
-  '2025-6-25': 'visita',
-  '2025-6-28': 'visita',
-  '2025-6-29': 'visita',
-};
-
-const meses = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-const dias = ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
-
-function generarCalendario() {
-  const grid = document.getElementById('cal-grid');
-  document.getElementById('cal-titulo').textContent = `${meses[calFecha.getMonth()]} ${calFecha.getFullYear()}`;
-  grid.innerHTML = '';
-  dias.forEach(d => {
-    const el = document.createElement('div');
-    el.className = 'cal-day-name';
-    el.textContent = d;
-    grid.appendChild(el);
-  });
-  const primer = new Date(calFecha.getFullYear(), calFecha.getMonth(), 1).getDay();
-  const total = new Date(calFecha.getFullYear(), calFecha.getMonth() + 1, 0).getDate();
-  const hoy = new Date();
-  for (let i = 0; i < primer; i++) {
-    const el = document.createElement('div');
-    el.className = 'cal-day vacio';
-    grid.appendChild(el);
-  }
-  for (let d = 1; d <= total; d++) {
-    const el = document.createElement('div');
-    const key = `${calFecha.getFullYear()}-${calFecha.getMonth()+1}-${d}`;
-    const esHoy = hoy.getDate()===d && hoy.getMonth()===calFecha.getMonth() && hoy.getFullYear()===calFecha.getFullYear();
-    el.className = 'cal-day' + (esHoy ? ' hoy' : '');
-    const num = document.createElement('div');
-    num.className = 'cal-day-num';
-    num.textContent = d;
-    el.appendChild(num);
-    if (eventos[key]) {
-      const ev = document.createElement('div');
-      ev.className = `cal-evento ${eventos[key]}`;
-      const labels = { visita:'Visita', cumplido:'✓ Realizada', incumplido:'✕ No realizada' };
-      ev.textContent = labels[eventos[key]];
-      el.appendChild(ev);
+    function entrar(u) {
+        usuario = u === 'madre' ? "Laura García" : "Marcelo Ríos";
+        document.getElementById('user-display').innerText = usuario;
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app').style.display = 'block';
+        conectarFirebase();
     }
-    el.onclick = () => { if (eventos[key]) toast(`${d}/${calFecha.getMonth()+1}: ${eventos[key]==='cumplido'?'Visita realizada':eventos[key]==='incumplido'?'No realizada':'Visita programada'}`); };
-    grid.appendChild(el);
-  }
-}
 
-function cambiarMes(dir) {
-  calFecha = new Date(calFecha.getFullYear(), calFecha.getMonth() + dir, 1);
-  generarCalendario();
-}
-
-// ─── GASTOS — CLASIFICACIÓN ───────────────────────────────────────────────
-let tipoGastoSeleccionado = null;
-
-function abrirModalGasto() {
-  tipoGastoSeleccionado = null;
-  document.getElementById('gasto-paso1').style.display = 'block';
-  document.getElementById('gasto-paso2').style.display = 'none';
-  document.getElementById('modal-gasto').classList.add('open');
-}
-
-function elegirTipoGasto(tipo) {
-  tipoGastoSeleccionado = tipo;
-  const aviso = document.getElementById('gasto-tipo-aviso');
-  const configs = {
-    extraordinario: {
-      bg: 'rgba(26,58,92,.08)', color: 'var(--navy)',
-      texto: '🔵 Gasto extraordinario — El otro progenitor recibirá una notificación y tendrá 48 horas para aprobar u objetar. Adjuntá el comprobante.'
-    },
-    ordinario: {
-      bg: 'var(--amber-bg)', color: 'var(--amber)',
-      texto: '🟡 Gasto ordinario — Se registrará como informativo. No genera obligación de pago del otro progenitor porque ya está cubierto por la cuota alimentaria. El juzgado puede verlo.'
-    },
-    adeterminar: {
-      bg: 'var(--cream)', color: 'var(--ink2)',
-      texto: '❓ Clasificación a determinar — Se registrará el gasto y el juzgado recibirá una alerta para resolver si es ordinario o extraordinario antes de que genere cualquier obligación.'
+    function irA(s) {
+        document.querySelectorAll('.section').forEach(x => x.classList.remove('active'));
+        document.querySelectorAll('.nav-tab').forEach(x => x.classList.remove('active'));
+        document.getElementById('sec-'+s).classList.add('active');
+        if(s === 'mensajes') document.getElementById('tab-msg').classList.add('active');
+        if(s === 'gastos') document.getElementById('tab-gastos').classList.add('active');
     }
-  };
-  const c = configs[tipo];
-  aviso.style.background = c.bg;
-  aviso.style.color = c.color;
-  aviso.style.border = `1.5px solid ${c.color}`;
-  aviso.textContent = c.texto;
-  document.getElementById('gasto-paso1').style.display = 'none';
-  document.getElementById('gasto-paso2').style.display = 'block';
-}
 
-function volverPaso1() {
-  document.getElementById('gasto-paso1').style.display = 'block';
-  document.getElementById('gasto-paso2').style.display = 'none';
-  tipoGastoSeleccionado = null;
-}
+    // --- EL ASISTENTE DE TONO (IA LOCAL) ---
+    function procesarMensaje() {
+        const txt = document.getElementById('msg-in').value.trim();
+        if(!txt) return;
 
-function aprobarGasto(btn) {
-  const card = btn.closest('.card');
-  card.querySelector('.badge').className = 'badge aprobado';
-  card.querySelector('.badge').textContent = 'Aprobado';
-  card.querySelector('.plazo-bar').remove();
-  btn.parentElement.innerHTML = '<button class="btn-sm outline" onclick="toast(\'Abriendo comprobante...\')">📎 Ver factura</button>';
-  const badge = document.getElementById('badge-gastos');
-  badge.style.display = 'none';
-  toast('Gasto aprobado. El registro quedó asentado en el expediente.');
-}
+        // Lógica de análisis de conflicto
+        const disparadores = ["porque vos", "siempre haces", "estupido", "estupida", "loco", "loca", "plata", "pagame", "culpable", "olvidate"];
+        const esConflictivo = disparadores.some(d => txt.toLowerCase().includes(d));
 
-// ─── MODALES ──────────────────────────────────────────────────────────────
-function abrirModalRegistro() { document.getElementById('modal-registro').classList.add('open'); }
-function abrirModalGasto()    { document.getElementById('modal-gasto').classList.add('open'); }
-function abrirModalEscuela()  { document.getElementById('modal-escuela').classList.add('open'); }
-function abrirModalSalud()    { document.getElementById('modal-salud').classList.add('open'); }
-function cerrarModales()      { document.querySelectorAll('.modal-overlay').forEach(m => m.classList.remove('open')); }
+        if(esConflictivo) {
+            document.getElementById('msg-orig').innerText = `"${txt}"`;
+            // Simulación de reescritura neutral
+            document.getElementById('msg-sug').innerText = "Necesito comunicarte un tema importante respecto al niño/a para coordinar de forma objetiva.";
+            document.getElementById('m-ia').style.display = 'flex';
+        } else {
+            enviarFinal('orig');
+        }
+    }
 
-document.querySelectorAll('.modal-overlay').forEach(overlay => {
-  overlay.addEventListener('click', e => { if (e.target === overlay) cerrarModales(); });
-});
+    function enviarFinal(tipo) {
+        const texto = tipo === 'sug' ? document.getElementById('msg-sug').innerText : document.getElementById('msg-in').value;
+        const { db, ref, push } = window._fb;
+        push(ref(db, `${path}/mensajes`), {
+            user: usuario,
+            texto: texto,
+            timestamp: Date.now()
+        });
+        document.getElementById('msg-in').value = "";
+        document.getElementById('m-ia').style.display = 'none';
+    }
 
-function guardarRegistro() {
-  cerrarModales();
-  toast('Encuentro registrado. Queda asentado con valor probatorio en el expediente.');
-}
-function guardarGasto() {
-  const msgs = {
-    extraordinario: 'Gasto extraordinario cargado. El otro progenitor tiene 48 hs para aprobar u objetar.',
-    ordinario: 'Gasto ordinario registrado como informativo. No genera obligación de pago.',
-    adeterminar: 'Gasto registrado. El juzgado recibió una alerta para clasificarlo.'
-  };
-  cerrarModales();
-  toast(msgs[tipoGastoSeleccionado] || 'Gasto registrado.');
-}
-function guardarEscuela() {
-  cerrarModales();
-  toast('Información escolar cargada. Ambos progenitores y el juzgado pueden verla.');
-}
-function actualizarVisibilidadSalud() {
-  const quien = document.getElementById('salud-quien').value;
-  const tipo  = document.getElementById('salud-tipo').value;
-  const aviso = document.getElementById('salud-visibilidad');
-  const esPsi = tipo === 'psi';
-  if (esPsi) {
-    aviso.style.background = 'rgba(26,58,92,.07)';
-    aviso.style.color = 'var(--navy)';
-    aviso.style.borderColor = 'rgba(26,58,92,.2)';
-    aviso.textContent = '[Solo visible para el juzgado y el equipo técnico. El otro progenitor NO puede ver este informe.]';
-  } else {
-    aviso.style.background = 'rgba(26,58,92,.07)';
-    aviso.style.color = 'var(--navy)';
-    aviso.style.borderColor = 'rgba(26,58,92,.2)';
-    aviso.textContent = '[Visible para ambos progenitores, el juzgado y el equipo técnico.]';
-  }
-}
+    function guardarGasto() {
+        const con = document.getElementById('g-con').value;
+        const mon = document.getElementById('g-mon').value;
+        const { db, ref, push } = window._fb;
+        push(ref(db, `${path}/gastos`), {
+            concepto: con,
+            monto: mon,
+            autor: usuario
+        });
+        document.getElementById('m-gasto').style.display = 'none';
+        alert("Gasto registrado con valor probatorio.");
+    }
 
-
-function guardarSalud() {
-  const tipo = document.getElementById('salud-tipo').value;
-  const esPsi = tipo === 'psi';
-  cerrarModales();
-  toast(esPsi
-    ? 'Informe psicoterapéutico cargado. Solo visible para el juzgado y el equipo técnico.'
-    : 'Novedad de salud registrada. Visible para ambos progenitores y el juzgado.');
-}
-
-// ─── TOAST ────────────────────────────────────────────────────────────────
-function toast(msg) {
-  const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.classList.add('show');
-  setTimeout(() => t.classList.remove('show'), 3000);
-}
+    function conectarFirebase() {
+        const { db, ref, onValue } = window._fb;
+        // Escuchar Chat
+        onValue(ref(db, `${path}/mensajes`), (snap) => {
+            const box = document.getElementById('chat-box');
+            box.innerHTML = "";
+            snap.forEach(c => {
+                const m = c.val();
+                const d = document.createElement('div');
+                d.className = `msg ${m.user === usuario ? 'yo' : 'otro'}`;
+                d.innerHTML = `<b>${m.user}</b><br>${m.texto}`;
+                box.appendChild(d);
+            });
+            box.scrollTop = box.scrollHeight;
+        });
+        // Escuchar Gastos
+        onValue(ref(db, `${path}/gastos`), (snap) => {
+            const list = document.getElementById('lista-gastos');
+            list.innerHTML = "";
+            snap.forEach(c => {
+                const g = c.val();
+                list.innerHTML += `<div class="card"><b>${g.concepto}</b><br><span style="color:var(--navy); font-size:18px">$${g.monto}</span><br><small>Cargado por ${g.autor}</small></div>`;
+            });
+        });
+    }
 </script>
 </body>
 </html>
