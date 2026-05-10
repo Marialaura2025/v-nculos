@@ -6,101 +6,123 @@
     <title>VÍNCULOS — Plataforma Judicial</title>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getDatabase, ref, push, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
-
-        const firebaseConfig = {
-            databaseURL: "https://vinculos-app-default-rtdb.firebaseio.com/"
-        };
-
+        import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+        const firebaseConfig = { databaseURL: "https://vinculos-app-default-rtdb.firebaseio.com/" };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        window._fb = { db, ref, push, onValue, set };
+        window._fb = { db, ref, push, onValue };
     </script>
-
     <style>
-        /* Estilos simplificados para máxima compatibilidad */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        :root { --navy: #1A3A5C; --gold: #C8A84B; --cream: #F7F4EE; --paper: #FDFBF7; --red: #8B1A1A; --green: #1A6B3A; }
+        :root { --navy: #1A3A5C; --gold: #C8A84B; --cream: #F7F4EE; --border: #DDD8CE; }
         body { font-family: -apple-system, sans-serif; background: var(--cream); color: #1c1c1e; }
         #login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #0F2540; }
-        .login-card { background: white; padding: 40px; border-radius: 16px; width: 350px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        .login-card { background: white; padding: 40px; border-radius: 16px; width: 350px; text-align: center; }
         #app { display: none; }
         .topbar { background: var(--navy); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
-        .nav-tabs { background: white; display: flex; border-bottom: 1px solid #ddd; }
-        .nav-tab { flex: 1; padding: 15px; border: none; background: none; cursor: pointer; font-weight: 600; color: #666; }
+        .nav-tabs { background: white; display: flex; border-bottom: 1px solid #ddd; overflow-x: auto; }
+        .nav-tab { flex: 1; padding: 15px; border: none; background: none; cursor: pointer; font-weight: 600; color: #666; white-space: nowrap; }
         .nav-tab.active { color: var(--navy); border-bottom: 3px solid var(--gold); }
         .main { padding: 20px; max-width: 600px; margin: 0 auto; }
         .section { display: none; }
         .section.active { display: block; }
-        .card { background: white; padding: 15px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 15px; }
-        .chat-window { background: white; height: 400px; border-radius: 10px; border: 1px solid #ddd; display: flex; flex-direction: column; }
+        .card { background: white; padding: 15px; border-radius: 10px; border: 1px solid #ddd; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .chat-window { background: white; height: 350px; border-radius: 10px; border: 1px solid #ddd; display: flex; flex-direction: column; }
         .chat-msgs { flex: 1; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 10px; }
         .msg { padding: 8px 12px; border-radius: 10px; font-size: 14px; max-width: 80%; }
         .msg.yo { align-self: flex-end; background: var(--navy); color: white; }
         .msg.otro { align-self: flex-start; background: #eee; }
         .chat-input-area { padding: 10px; border-top: 1px solid #ddd; display: flex; gap: 5px; }
-        textarea { flex: 1; padding: 8px; border-radius: 5px; border: 1px solid #ddd; }
+        textarea, input, select { width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ddd; margin-bottom: 10px; }
         .modal-overlay { position: fixed; inset:0; background: rgba(0,0,0,0.7); display:none; align-items:center; justify-content:center; z-index:100; }
         .modal { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 400px; }
+        .btn-main { background: var(--navy); color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div id="login-screen">
     <div class="login-card">
-        <h2 style="color:var(--navy); font-family:Georgia;">⚖️ VÍNCULOS</h2><br>
-        <button class="nav-tab active" style="width:100%; border:1px solid #ddd; margin-bottom:10px" onclick="entrar('madre')">👩 Laura García (Madre)</button>
-        <button class="nav-tab active" style="width:100%; border:1px solid #ddd" onclick="entrar('padre')">👨 Marcelo Ríos (Padre)</button>
+        <h2 style="color:var(--navy); margin-bottom:20px;">⚖️ VÍNCULOS</h2>
+        <button class="btn-main" style="margin-bottom:10px" onclick="entrar('madre')">Acceder como Laura García</button>
+        <button class="btn-main" style="background:#4A5568" onclick="entrar('padre')">Acceder como Marcelo Ríos</button>
     </div>
 </div>
 
 <div id="app">
     <div class="topbar">
-        <span>VÍNCULOS Judicial</span>
+        <span>VÍNCULOS</span>
         <small id="user-display"></small>
     </div>
     <div class="nav-tabs">
-        <button class="nav-tab active" id="tab-msg" onclick="irA('mensajes')">Chat</button>
-        <button class="nav-tab" id="tab-gastos" onclick="irA('gastos')">Gastos</button>
+        <button class="nav-tab active" onclick="irA('mensajes', this)">Chat</button>
+        <button class="nav-tab" onclick="irA('gastos', this)">Gastos</button>
+        <button class="nav-tab" onclick="irA('salud', this)">Salud</button>
+        <button class="nav-tab" onclick="irA('educacion', this)">Educación</button>
     </div>
+
     <div class="main">
         <div id="sec-mensajes" class="section active">
             <div class="chat-window">
                 <div class="chat-msgs" id="chat-box"></div>
                 <div class="chat-input-area">
-                    <textarea id="msg-in" placeholder="Escribir mensaje oficial..."></textarea>
-                    <button onclick="procesarMensaje()" style="background:var(--navy); color:white; border:none; padding:10px; border-radius:5px;">Enviar</button>
+                    <textarea id="msg-in" placeholder="Escribir mensaje..."></textarea>
+                    <button onclick="procesarMensaje()" style="background:var(--navy); color:white; border:none; padding:10px; border-radius:5px;">➤</button>
                 </div>
             </div>
         </div>
+
         <div id="sec-gastos" class="section">
-            <button onclick="document.getElementById('m-gasto').style.display='flex'" style="width:100%; padding:10px; margin-bottom:10px; background:var(--navy); color:white; border-radius:5px; border:none;">+ Nuevo Gasto Extraordinario</button>
-            <div id="lista-gastos"></div>
+            <button class="btn-main" onclick="abrirModal('m-gasto')">+ Nuevo Gasto</button>
+            <div id="lista-gastos" style="margin-top:15px"></div>
+        </div>
+
+        <div id="sec-salud" class="section">
+            <button class="btn-main" onclick="abrirModal('m-salud')">+ Nueva Novedad Médica</button>
+            <div id="lista-salud" style="margin-top:15px"></div>
+        </div>
+
+        <div id="sec-educacion" class="section">
+            <button class="btn-main" onclick="abrirModal('m-edu')">+ Información Escolar</button>
+            <div id="lista-edu" style="margin-top:15px"></div>
         </div>
     </div>
 </div>
 
 <div class="modal-overlay" id="m-ia">
     <div class="modal">
-        <h4 style="color:var(--red)">⚠️ Perspectiva de Género</h4><br>
-        <p style="font-size:12px; color:#666">El sistema detectó que tu mensaje puede escalar el conflicto.</p><br>
+        <h4 style="color:#8B1A1A">⚠️ Asistente de Tono</h4><br>
         <div style="background:#f9f9f9; padding:10px; border-radius:5px; font-style:italic; font-size:13px" id="msg-orig"></div><br>
-        <p style="font-weight:bold; font-size:13px; color:var(--green)">Sugerencia Neutral:</p>
+        <p style="color:#1A6B3A; font-weight:bold">Sugerencia Neutral:</p>
         <div style="background:#e8f5ee; padding:10px; border-radius:5px; font-size:13px" id="msg-sug"></div><br>
-        <button onclick="enviarFinal('sug')" style="width:100%; padding:10px; background:var(--green); color:white; border:none; border-radius:5px; margin-bottom:10px">Usar sugerencia neutral</button>
-        <button onclick="document.getElementById('m-ia').style.display='none'" style="width:100%; background:none; border:none; color:#999; font-size:12px">Editar mi mensaje</button>
+        <button class="btn-main" onclick="enviarFinal('sug')" style="background:#1A6B3A">Usar sugerencia</button>
+        <button onclick="cerrarModales()" style="background:none; border:none; width:100%; margin-top:10px; color:#666">Editar original</button>
     </div>
 </div>
 
-<div class="modal-overlay" id="m-gasto">
-    <div class="modal">
-        <h3>Nuevo Gasto</h3><br>
-        <input type="text" id="g-con" placeholder="Concepto">
-        <input type="number" id="g-mon" placeholder="Monto $">
-        <button onclick="guardarGasto()" style="width:100%; padding:10px; background:var(--navy); color:white; border:none; border-radius:5px;">Cargar en Expediente</button>
-        <button onclick="document.getElementById('m-gasto').style.display='none'" style="width:100%; background:none; border:none; margin-top:10px">Cerrar</button>
-    </div>
-</div>
+<div class="modal-overlay" id="m-gasto"><div class="modal">
+    <h3>Cargar Gasto</h3><br>
+    <input type="text" id="g-con" placeholder="Concepto (ej: Uniforme)">
+    <input type="number" id="g-mon" placeholder="Monto $">
+    <button class="btn-main" onclick="guardarDato('gastos')">Guardar</button>
+    <button onclick="cerrarModales()">Cerrar</button>
+</div></div>
+
+<div class="modal-overlay" id="m-salud"><div class="modal">
+    <h3>Novedad Médica</h3><br>
+    <select id="s-tipo"><option>Consulta Pediátrica</option><option>Vacunas</option><option>Turno Especialista</option></select>
+    <textarea id="s-det" placeholder="Detalles del diagnóstico o turno..."></textarea>
+    <button class="btn-main" onclick="guardarDato('salud')">Guardar</button>
+    <button onclick="cerrarModales()">Cerrar</button>
+</div></div>
+
+<div class="modal-overlay" id="m-edu"><div class="modal">
+    <h3>Educación</h3><br>
+    <input type="text" id="e-tit" placeholder="Título (ej: Boletín, Reunión)">
+    <textarea id="e-det" placeholder="Detalle de la novedad escolar..."></textarea>
+    <button class="btn-main" onclick="guardarDato('educacion')">Guardar</button>
+    <button onclick="cerrarModales()">Cerrar</button>
+</div></div>
 
 <script>
     let usuario = "";
@@ -114,83 +136,65 @@
         conectarFirebase();
     }
 
-    function irA(s) {
+    function irA(s, btn) {
         document.querySelectorAll('.section').forEach(x => x.classList.remove('active'));
         document.querySelectorAll('.nav-tab').forEach(x => x.classList.remove('active'));
         document.getElementById('sec-'+s).classList.add('active');
-        if(s === 'mensajes') document.getElementById('tab-msg').classList.add('active');
-        if(s === 'gastos') document.getElementById('tab-gastos').classList.add('active');
+        btn.classList.add('active');
     }
 
-    // --- EL ASISTENTE DE TONO (IA LOCAL) ---
     function procesarMensaje() {
         const txt = document.getElementById('msg-in').value.trim();
         if(!txt) return;
-
-        // Lógica de análisis de conflicto
-        const disparadores = ["porque vos", "siempre haces", "estupido", "estupida", "loco", "loca", "plata", "pagame", "culpable", "olvidate"];
-        const esConflictivo = disparadores.some(d => txt.toLowerCase().includes(d));
-
-        if(esConflictivo) {
+        const disparadores = ["porque vos", "siempre haces", "estupido", "loco", "loca", "plata", "culpa", "odio"];
+        if(disparadores.some(d => txt.toLowerCase().includes(d))) {
             document.getElementById('msg-orig').innerText = `"${txt}"`;
-            // Simulación de reescritura neutral
-            document.getElementById('msg-sug').innerText = "Necesito comunicarte un tema importante respecto al niño/a para coordinar de forma objetiva.";
+            document.getElementById('msg-sug').innerText = "Propongo que hablemos sobre este tema enfocándonos en las necesidades del niño/a de forma neutral.";
             document.getElementById('m-ia').style.display = 'flex';
-        } else {
-            enviarFinal('orig');
-        }
+        } else { enviarFinal('orig'); }
     }
 
     function enviarFinal(tipo) {
         const texto = tipo === 'sug' ? document.getElementById('msg-sug').innerText : document.getElementById('msg-in').value;
         const { db, ref, push } = window._fb;
-        push(ref(db, `${path}/mensajes`), {
-            user: usuario,
-            texto: texto,
-            timestamp: Date.now()
-        });
+        push(ref(db, `${path}/mensajes`), { user: usuario, texto: texto, timestamp: Date.now() });
         document.getElementById('msg-in').value = "";
-        document.getElementById('m-ia').style.display = 'none';
+        cerrarModales();
     }
 
-    function guardarGasto() {
-        const con = document.getElementById('g-con').value;
-        const mon = document.getElementById('g-mon').value;
+    function guardarDato(tipo) {
         const { db, ref, push } = window._fb;
-        push(ref(db, `${path}/gastos`), {
-            concepto: con,
-            monto: mon,
-            autor: usuario
-        });
-        document.getElementById('m-gasto').style.display = 'none';
-        alert("Gasto registrado con valor probatorio.");
+        let data = { autor: usuario, fecha: new Date().toLocaleDateString() };
+        if(tipo === 'gastos') { data.con = document.getElementById('g-con').value; data.mon = document.getElementById('g-mon').value; }
+        if(tipo === 'salud') { data.tipo = document.getElementById('s-tipo').value; data.det = document.getElementById('s-det').value; }
+        if(tipo === 'educacion') { data.tit = document.getElementById('e-tit').value; data.det = document.getElementById('e-det').value; }
+        
+        push(ref(db, `${path}/${tipo}`), data);
+        cerrarModales();
     }
 
     function conectarFirebase() {
         const { db, ref, onValue } = window._fb;
-        // Escuchar Chat
         onValue(ref(db, `${path}/mensajes`), (snap) => {
-            const box = document.getElementById('chat-box');
-            box.innerHTML = "";
-            snap.forEach(c => {
-                const m = c.val();
-                const d = document.createElement('div');
-                d.className = `msg ${m.user === usuario ? 'yo' : 'otro'}`;
-                d.innerHTML = `<b>${m.user}</b><br>${m.texto}`;
-                box.appendChild(d);
-            });
+            const box = document.getElementById('chat-box'); box.innerHTML = "";
+            snap.forEach(c => { const m = c.val(); box.innerHTML += `<div class="msg ${m.user === usuario ? 'yo' : 'otro'}"><b>${m.user}</b><br>${m.texto}</div>`; });
             box.scrollTop = box.scrollHeight;
         });
-        // Escuchar Gastos
         onValue(ref(db, `${path}/gastos`), (snap) => {
-            const list = document.getElementById('lista-gastos');
-            list.innerHTML = "";
-            snap.forEach(c => {
-                const g = c.val();
-                list.innerHTML += `<div class="card"><b>${g.concepto}</b><br><span style="color:var(--navy); font-size:18px">$${g.monto}</span><br><small>Cargado por ${g.autor}</small></div>`;
-            });
+            const l = document.getElementById('lista-gastos'); l.innerHTML = "";
+            snap.forEach(c => { const g = c.val(); l.innerHTML += `<div class="card"><b>${g.con}</b><br><span style="color:#1A3A5C; font-size:18px">$${g.mon}</span><br><small>${g.autor} - ${g.fecha}</small></div>`; });
+        });
+        onValue(ref(db, `${path}/salud`), (snap) => {
+            const l = document.getElementById('lista-salud'); l.innerHTML = "";
+            snap.forEach(c => { const s = c.val(); l.innerHTML += `<div class="card"><b>${s.tipo}</b><br>${s.det}<br><small>${s.autor} - ${s.fecha}</small></div>`; });
+        });
+        onValue(ref(db, `${path}/educacion`), (snap) => {
+            const l = document.getElementById('lista-edu'); l.innerHTML = "";
+            snap.forEach(c => { const e = c.val(); l.innerHTML += `<div class="card"><b>${e.tit}</b><br>${e.det}<br><small>${e.autor} - ${e.fecha}</small></div>`; });
         });
     }
+    function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function cerrarModales() { document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); }
 </script>
 </body>
 </html>
