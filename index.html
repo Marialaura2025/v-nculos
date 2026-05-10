@@ -3,57 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VÍNCULOS — Plataforma Judicial de Gestión Parental</title>
+    <title>VÍNCULOS — Gestión Parental</title>
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getDatabase, ref, push, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+        import { getDatabase, ref, push, onValue, set, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
         const firebaseConfig = { databaseURL: "https://vinculos-app-default-rtdb.firebaseio.com/" };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        window._fb = { db, ref, push, onValue, set };
+        window._fb = { db, ref, push, onValue, set, remove };
     </script>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         :root { --navy: #1A3A5C; --gold: #C8A84B; --cream: #F7F4EE; --red: #B22222; --green: #2E7D32; --blue: #1976D2; }
-        body { font-family: -apple-system, sans-serif; background: var(--cream); color: #1c1c1e; line-height: 1.4; padding-bottom: 30px; }
+        body { font-family: -apple-system, sans-serif; background: var(--cream); color: #1c1c1e; }
         #login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #0F2540; padding: 20px; }
-        .login-card { background: white; padding: 30px; border-radius: 16px; width: 100%; max-width: 400px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
-        .btn-role { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 8px; border: 1.5px solid #ddd; cursor: pointer; font-weight: bold; background: white; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .login-card { background: white; padding: 30px; border-radius: 16px; width: 100%; max-width: 400px; text-align: center; }
+        .btn-role { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 8px; border: 1.5px solid #ddd; cursor: pointer; font-weight: bold; background: white; }
         #app { display: none; }
         .topbar { background: var(--navy); color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
-        .nav-tabs { background: white; display: flex; border-bottom: 1px solid #ddd; overflow-x: auto; position: sticky; top: 48px; z-index: 900; }
-        .nav-tab { flex: 1; padding: 15px 10px; border: none; background: none; cursor: pointer; font-weight: 600; color: #666; font-size: 9px; text-transform: uppercase; min-width: 85px; }
+        .nav-tabs { background: white; display: flex; border-bottom: 1px solid #ddd; position: sticky; top: 44px; z-index: 900; }
+        .nav-tab { flex: 1; padding: 15px 5px; border: none; background: none; cursor: pointer; font-weight: 600; color: #666; font-size: 9px; text-transform: uppercase; }
         .nav-tab.active { color: var(--navy); border-bottom: 3px solid var(--gold); }
-        .main { padding: 15px; max-width: 650px; margin: 0 auto; }
+        .main { padding: 15px; max-width: 600px; margin: 0 auto; }
         .section { display: none; }
         .section.active { display: block; }
-        .card { background: white; padding: 15px; border-radius: 12px; border: 1px solid #ddd; margin-bottom: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .badge { font-size: 9px; font-weight: bold; padding: 3px 8px; border-radius: 4px; text-transform: uppercase; margin-bottom: 8px; display: inline-block; }
+        .card { background: white; padding: 15px; border-radius: 12px; border: 1px solid #ddd; margin-bottom: 12px; position: relative; }
         .btn-main { background: var(--navy); color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; cursor: pointer; font-weight: bold; margin-top: 10px; }
-        .audit-tag { background: #fff0f0; border: 1px solid #ffcccc; color: var(--red); font-size: 10px; padding: 8px; border-radius: 6px; margin-top: 8px; display: block; font-style: italic; }
         #chat-box { height: 350px; overflow-y: auto; border: 1px solid #ddd; background: white; padding: 15px; border-radius: 10px; display: flex; flex-direction: column; gap: 10px; }
         .msg { padding: 10px; border-radius: 12px; font-size: 13px; max-width: 85%; }
-        .msg.yo { align-self: flex-end; background: var(--navy); color: white; border-bottom-right-radius: 2px; }
-        .msg.otro { align-self: flex-start; background: #f0f0f0; color: black; border-bottom-left-radius: 2px; }
+        .msg.yo { align-self: flex-end; background: var(--navy); color: white; }
+        .msg.otro { align-self: flex-start; background: #eee; color: black; }
         .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: #ddd; border: 1px solid #ddd; margin-top: 10px; }
-        .cal-day { background: white; min-height: 70px; padding: 5px; font-size: 11px; }
-        .cal-event { font-size: 8px; padding: 2px 4px; border-radius: 3px; color: white; margin-top: 2px; }
-        .modal-overlay { position: fixed; inset:0; background: rgba(0,0,0,0.8); display:none; align-items:center; justify-content:center; z-index:2000; padding: 20px; }
-        .modal { background: white; padding: 25px; border-radius: 16px; width: 100%; max-width: 400px; }
-        input, textarea, select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-top: 10px; font-size: 14px; }
+        .cal-day { background: white; min-height: 65px; padding: 5px; font-size: 10px; position: relative; }
+        .cal-event { font-size: 7px; padding: 2px; border-radius: 2px; color: white; margin-top: 2px; line-height: 1; }
+        .modal-overlay { position: fixed; inset:0; background: rgba(0,0,0,0.8); display:none; align-items:center; justify-content:center; z-index:2000; }
+        .modal { background: white; padding: 25px; border-radius: 16px; width: 90%; max-width: 400px; }
+        input, textarea, select { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #ddd; margin-top: 10px; }
+        .btn-del { font-size: 10px; color: var(--red); background: none; border: none; cursor: pointer; float: right; }
     </style>
 </head>
 <body>
 
+<audio id="notif-sound" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3"></audio>
+
 <div id="login-screen">
     <div class="login-card">
-        <h2 style="color:var(--navy); font-family: Georgia; margin-bottom: 5px;">⚖️ VÍNCULOS</h2>
-        <p style="font-size: 11px; color: #888; margin-bottom: 25px;">Plataforma de Gestión Parental - Exp. 1847</p>
-        <button class="btn-role" onclick="entrar('madre')">👩 Progenitora (Laura G.)</button>
-        <button class="btn-role" onclick="entrar('padre')">👨 Progenitor (Marcelo R.)</button>
-        <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
-        <button class="btn-role" onclick="abrirModal('m-lawyer')">💼 Letrados Patrocinantes</button>
-        <button class="btn-role" onclick="entrar('juez')" style="background: var(--navy); color: white;">🏛️ Acceso Judicial (Juez/Equipo)</button>
+        <h2 style="color:var(--navy)">⚖️ VÍNCULOS</h2>
+        <p style="font-size:11px; color:#888; margin-bottom:20px">Plataforma Judicial - Exp. 1847</p>
+        <button class="btn-role" onclick="entrar('madre')">👩 Laura García</button>
+        <button class="btn-role" onclick="entrar('padre')">👨 Marcelo Ríos</button>
+        <button class="btn-role" onclick="abrirModal('m-lawyer')" style="border-color:#aaa">💼 Letrados</button>
+        <button class="btn-role" onclick="entrar('juez')" style="background:var(--navy); color:white">🏛️ Juzgado</button>
     </div>
 </div>
 
@@ -69,169 +69,146 @@
 
     <div class="main">
         <div id="sec-chat" class="section active">
-            <div id="audit-ui" style="display:none; background:#eef; padding:10px; border-radius:8px; font-size:11px; margin-bottom:10px; border:1px solid #ccd;">
-                <b>🛡️ CONTROL ART. 11:</b> <span id="incident-val" style="color:var(--red); font-weight:bold">0</span> intervenciones de IA detectadas.
-                <button onclick="window.print()" style="float:right; font-size:9px">Exportar PDF</button>
-            </div>
+            <div id="audit-ui" style="display:none; font-size:11px; color:var(--red); margin-bottom:10px">🛡️ Incidentes Detectados: <span id="incident-val">0</span></div>
             <div id="chat-box"></div>
-            <div id="input-area" style="margin-top:15px">
-                <textarea id="msg-in" placeholder="Escribir mensaje..."></textarea>
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px">
-                    <input type="file" style="width:auto; font-size:10px; margin:0">
-                    <button onclick="chequearIA()" class="btn-main" style="width:auto; padding:8px 25px">Enviar</button>
-                </div>
+            <div id="input-area" style="margin-top:10px">
+                <textarea id="msg-in" placeholder="Mensaje..."></textarea>
+                <button onclick="procesarIA()" class="btn-main">Enviar</button>
             </div>
         </div>
 
         <div id="sec-age" class="section">
-            <h4 style="margin-bottom:10px">Calendario Parental</h4>
+            <h4 id="mes-titulo">Mayo 2026</h4>
             <div class="cal-grid" id="cal-grid"></div>
-            <button id="btn-incidencia" class="btn-main" onclick="abrirModal('m-incidencia')">Registrar Incidencia de Régimen</button>
+            <button class="btn-main" onclick="abrirModal('m-incidencia')">Registrar Incidencia Régimen</button>
         </div>
 
-        <div id="sec-gas" class="section"><button id="btn-g" class="btn-main" onclick="abrirModal('m-gasto')">+ Cargar Gasto/Factura</button><div id="lista-gas" style="margin-top:15px"></div></div>
-        <div id="sec-edu" class="section"><button id="btn-e" class="btn-main" onclick="abrirModal('m-edu')">+ Subir Nota/Boletín</button><div id="lista-edu" style="margin-top:15px"></div></div>
-        <div id="sec-sal" class="section"><button id="btn-s" class="btn-main" onclick="abrirModal('m-sal')">+ Subir Certificado/Turno</button><div id="lista-sal" style="margin-top:15px"></div></div>
+        <div id="sec-gas" class="section"><button class="btn-main" onclick="abrirModal('m-gasto')">+ Cargar Gasto</button><div id="lista-gas" style="margin-top:15px"></div></div>
+        <div id="sec-edu" class="section"><button class="btn-main" onclick="abrirModal('m-edu')">+ Cargar Escuela</button><div id="lista-edu" style="margin-top:15px"></div></div>
+        <div id="sec-sal" class="section"><button class="btn-main" onclick="abrirModal('m-sal')">+ Cargar Salud</button><div id="lista-sal" style="margin-top:15px"></div></div>
     </div>
 </div>
 
-<div class="modal-overlay" id="m-lawyer"><div class="modal">
-    <h3>Acceso Letrados</h3><p style="font-size:11px">Seleccione parte representada:</p><br>
-    <button class="btn-role" onclick="entrar('abogado_madre')">Representante Laura G.</button>
-    <button class="btn-role" onclick="entrar('abogado_padre')">Representante Marcelo R.</button>
-</div></div>
-
-<div class="modal-overlay" id="m-ia"><div class="modal">
-    <h4 style="color:var(--red)">Sugerencia IA</h4>
-    <p style="font-size:12px; margin:10px 0;">Se detectó tono agresivo. Se registrará la incidencia para el Juzgado.</p>
-    <div id="ia-sug" style="background:#e8f5ee; padding:10px; border-radius:8px; font-size:13px; color:var(--green); font-style:italic"></div>
-    <button class="btn-main" onclick="enviarFinal(true)" style="background:var(--green)">Enviar Mensaje Neutral</button>
-    <button onclick="cerrarModales()" style="background:none; border:none; width:100%; margin-top:10px; font-size:11px">Editar original</button>
-</div></div>
-
-<div class="modal-overlay" id="m-gasto"><div class="modal"><h3>Nuevo Gasto</h3><input type="text" id="g-con" placeholder="Concepto"><input type="number" id="g-mon" placeholder="Monto $"><input type="file" style="margin-top:10px"><button class="btn-main" onclick="guardar('gastos')">Subir</button></div></div>
-<div class="modal-overlay" id="m-incidencia"><div class="modal"><h3>Régimen</h3><input type="date" id="i-fec"><select id="i-tipo"><option value="acuerdo">Acuerdo (Verde)</option><option value="incumplimiento">Incumplimiento (Rojo)</option></select><textarea id="i-obs" placeholder="Obs..."></textarea><button class="btn-main" onclick="guardarIncidencia()">Registrar</button></div></div>
-<div class="modal-overlay" id="m-edu"><div class="modal"><h3>Escuela</h3><input type="text" id="e-con" placeholder="Título"><input type="file" style="margin-top:10px"><button class="btn-main" onclick="guardar('educacion')">Subir</button></div></div>
-<div class="modal-overlay" id="m-sal"><div class="modal"><h3>Salud</h3><input type="text" id="s-con" placeholder="Título"><input type="date" id="s-fec"><input type="file" style="margin-top:10px"><button class="btn-main" onclick="guardar('salud')">Subir</button></div></div>
+<div class="modal-overlay" id="m-ia"><div class="modal"><h4 style="color:var(--red)">Tono Detectado</h4><div id="ia-sug" style="margin:15px 0; font-style:italic"></div><button class="btn-main" onclick="enviarFinal(true)">Enviar Sugerencia</button><button class="btn-main" style="background:#888" onclick="cerrarModales()">Corregir</button></div></div>
+<div class="modal-overlay" id="m-lawyer"><div class="modal"><h3>Letrados</h3><button class="btn-role" onclick="entrar('abogado_madre')">Laura G.</button><button class="btn-role" onclick="entrar('abogado_padre')">Marcelo R.</button></div></div>
+<div class="modal-overlay" id="m-gasto"><div class="modal"><h3>Gasto</h3><input id="g-con" placeholder="Concepto"><input type="number" id="g-mon" placeholder="$ Monto"><button class="btn-main" onclick="guardar('gastos')">Guardar</button></div></div>
+<div class="modal-overlay" id="m-edu"><div class="modal"><h3>Escuela</h3><input id="e-con" placeholder="Reunión/Nota"><input type="date" id="e-fec"><button class="btn-main" onclick="guardar('educacion')">Guardar</button></div></div>
+<div class="modal-overlay" id="m-sal"><div class="modal"><h3>Salud</h3><input id="s-con" placeholder="Turno/Certificado"><input type="date" id="s-fec"><button class="btn-main" onclick="guardar('salud')">Guardar</button></div></div>
+<div class="modal-overlay" id="m-incidencia"><div class="modal"><h3>Incidencia</h3><input type="date" id="i-fec"><select id="i-tipo"><option value="acuerdo">Acuerdo</option><option value="incumplimiento">Incumplimiento</option></select><button class="btn-main" onclick="guardarIncidencia()">Guardar</button></div></div>
 
 <script>
-    let usuario = ""; let rolActual = "";
-    const path = "expedientes/FAM-09-2024-1847";
+    let usuario = ""; let rolActual = ""; let lastMsgCount = 0;
+    const path = "expedientes/FAM-1847";
 
     function entrar(rol) {
         rolActual = rol; cerrarModales();
-        const esAuditor = rol === 'juez' || rol.includes('abogado');
         usuario = rol.includes('madre') ? "Laura G." : (rol.includes('padre') ? "Marcelo R." : "Juzgado");
-        
         document.getElementById('user-display').innerText = usuario;
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('app').style.display = 'block';
-
-        if(esAuditor) {
+        if(rol==='juez'||rol.includes('abogado')) {
             document.getElementById('input-area').style.display = 'none';
             document.getElementById('audit-ui').style.display = 'block';
-            document.querySelectorAll('.btn-main').forEach(b => { if(b.id !== '') b.style.display = 'none'; });
         }
         generarCal(); conectar();
     }
 
-    function chequearIA() {
-        const txt = document.getElementById('msg-in').value;
-        if(["culpa","odio","siempre","nunca","plata"].some(w => txt.toLowerCase().includes(w))) {
-            document.getElementById('ia-sug').innerText = "Tratemos de enfocar la comunicación en el bienestar del niño/a.";
+    function irA(sec, btn) {
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+        document.getElementById('sec-' + sec).classList.add('active');
+        btn.classList.add('active');
+    }
+
+    function procesarIA() {
+        const t = document.getElementById('msg-in').value;
+        if(["culpa","odio","siempre","nunca","plata"].some(w => t.toLowerCase().includes(w))) {
+            document.getElementById('ia-sug').innerText = "Mantengamos el foco en la organización de los chicos.";
             document.getElementById('m-ia').style.display = 'flex';
         } else { enviarFinal(false); }
     }
 
-    function enviarFinal(fueIA) {
+    function enviarFinal(ia) {
         const { db, ref, push } = window._fb;
-        const original = document.getElementById('msg-in').value;
-        push(ref(db, `${path}/chat`), { autor: usuario, txt: fueIA ? document.getElementById('ia-sug').innerText : original, original: fueIA ? original : "", esIA: fueIA, time: Date.now() });
+        push(ref(db, `${path}/chat`), { autor: usuario, txt: ia ? document.getElementById('ia-sug').innerText : document.getElementById('msg-in').value, esIA: ia, original: ia ? document.getElementById('msg-in').value : "", time: Date.now() });
         document.getElementById('msg-in').value = ""; cerrarModales();
     }
 
     function guardar(tipo) {
         const { db, ref, push } = window._fb;
-        let data = { autor: usuario, fecha: new Date().toLocaleDateString(), estado: "Firme (Art. 7)" };
-        if(tipo === 'gastos') {
-            const con = document.getElementById('g-con').value;
-            let clase = ["colegio","medico","ingles","ortodoncia"].some(k => con.toLowerCase().includes(k)) ? "Extraordinario" : "Ordinario";
-            data.con = con; data.mon = document.getElementById('g-mon').value; data.clase = clase;
-        } else if(tipo === 'salud') {
-            data.con = document.getElementById('s-con').value; data.fec = document.getElementById('s-fec').value;
-            const d = parseInt(data.fec.split('-')[2]);
-            push(ref(db, `${path}/agenda`), { dia: d, obs: data.con, tipo: 'turno' });
-        } else { data.con = document.getElementById('e-con').value; }
-        push(ref(db, `${path}/${tipo}`), data); cerrarModales();
+        let d = { autor: usuario, time: Date.now(), fecha: new Date().toLocaleDateString() };
+        if(tipo==='gastos') { d.con = document.getElementById('g-con').value; d.mon = document.getElementById('g-mon').value; }
+        else {
+            const idF = tipo==='educacion'?'e-fec':'s-fec';
+            const idC = tipo==='educacion'?'e-con':'s-con';
+            d.con = document.getElementById(idC).value; d.fec = document.getElementById(idF).value;
+            if(d.fec) {
+                const dia = parseInt(d.fec.split('-')[2]);
+                push(ref(db, `${path}/agenda`), { dia, obs: d.con, tipo: tipo==='educacion'?'escuela':'salud' });
+            }
+        }
+        push(ref(db, `${path}/${tipo}`), d); cerrarModales();
+    }
+
+    function borrarDato(tipo, id) {
+        if(confirm("¿Borrar este registro?")) { window._fb.remove(window._fb.ref(window._fb.db, `${path}/${tipo}/${id}`)); }
     }
 
     function guardarIncidencia() {
-        const { db, ref, push } = window._fb;
         const dia = parseInt(document.getElementById('i-fec').value.split('-')[2]);
-        push(ref(db, `${path}/agenda`), { dia: dia, tipo: document.getElementById('i-tipo').value, obs: document.getElementById('i-obs').value, autor: usuario });
+        window._fb.push(window._fb.ref(window._fb.db, `${path}/agenda`), { dia, tipo: document.getElementById('i-tipo').value, obs: "Incidencia Régimen", autor: usuario });
         cerrarModales();
     }
 
     function conectar() {
-        const { db, ref, onValue, set } = window._fb;
-        const esAuditor = rolActual === 'juez' || rolActual.includes('abogado');
-
+        const { db, ref, onValue } = window._fb;
+        
         onValue(ref(db, `${path}/chat`), snap => {
             const box = document.getElementById('chat-box'); box.innerHTML = "";
-            let count = 0;
-            snap.forEach(c => {
-                const m = c.val(); if(m.esIA) count++;
-                const esMio = m.autor === usuario;
-                let html = `<div class="msg ${esMio?'yo':'otro'}"><b>${m.autor}</b><br>${m.txt}`;
-                if(m.esIA) {
-                    if(rolActual === 'juez') html += `<span class="audit-tag">⚠️ ORIGINAL (JUEZ): "${m.original}"</span>`;
-                    else if(rolActual.includes('abogado')) html += `<span class="audit-tag">ℹ️ Incidencia Art. 11: Contenido violento filtrado.</span>`;
-                }
+            let c = 0; let total = 0;
+            snap.forEach(mSnap => {
+                const m = mSnap.val(); total++;
+                if(m.esIA) c++;
+                const yo = m.autor === usuario;
+                let html = `<div class="msg ${yo?'yo':'otro'}"><b>${m.autor}</b><br>${m.txt}`;
+                if(m.esIA && rolActual==='juez') html += `<br><small style="color:red">ORIGINAL: ${m.original}</small>`;
                 box.innerHTML += html + `</div>`;
             });
-            document.getElementById('incident-val').innerText = count;
+            if(total > lastMsgCount && lastMsgCount !== 0) { document.getElementById('notif-sound').play(); }
+            lastMsgCount = total;
+            document.getElementById('incident-val').innerText = c;
             box.scrollTop = box.scrollHeight;
         });
 
         onValue(ref(db, `${path}/agenda`), snap => {
             document.querySelectorAll('.cal-event').forEach(e => e.remove());
-            snap.forEach(c => {
-                const e = c.val(); const d = document.getElementById(`day-${e.dia}`);
+            snap.forEach(eSnap => {
+                const e = eSnap.val(); const d = document.getElementById('day-'+e.dia);
                 if(d) {
-                    const col = e.tipo==='acuerdo'?'var(--green)':(e.tipo==='incumplimiento'?'var(--red)':'var(--blue)');
+                    const col = e.tipo==='escuela'?'var(--blue)':(e.tipo==='salud'?'#9c27b0':(e.tipo==='acuerdo'?'var(--green)':'var(--red)'));
                     d.innerHTML += `<div class="cal-event" style="background:${col}">${e.obs}</div>`;
                 }
             });
         });
 
-        const mon = (t, d) => {
+        const monitorear = (t, listId) => {
             onValue(ref(db, `${path}/${t}`), snap => {
-                const l = document.getElementById(d); l.innerHTML = "";
-                snap.forEach(c => {
-                    const g = c.val(); const id = c.key;
-                    const esObj = g.estado.includes("OBJETADO");
-                    l.innerHTML += `<div class="card" style="border-left:5px solid ${esObj?'red':'var(--navy)'}">
-                        ${g.clase ? `<span class="badge" style="background:var(--navy); color:white">${g.clase}</span>` : ''}
-                        <span style="float:right; font-size:9px; color:${esObj?'red':'green'}">${g.estado}</span><br>
-                        <b>${g.con}</b> ${g.mon?'($'+g.mon+')':''}<br><small>📎 Archivo adjunto</small><br><small>${g.autor} - ${g.fecha}</small>
-                        ${(!esObj && g.autor !== usuario && !esAuditor && t === 'gastos') ? `<br><button onclick="const m=prompt('Motivo Art. 7:'); if(m){ window._fb.set(window._fb.ref(window._fb.db, '${path}/${t}/${id}/estado'), 'OBJETADO: '+m); window._fb.set(window._fb.ref(window._fb.db, '${path}/${t}/${id}/destino'), 'REMITIDO A EXPEDIENTE'); }" style="font-size:9px; color:red; border:1px solid red; background:none; cursor:pointer">Objetar</button>` : ''}
-                        ${g.destino ? `<div style="color:red; font-weight:bold; font-size:9px; margin-top:5px">📍 ${g.destino}</div>` : ''}
+                const l = document.getElementById(listId); l.innerHTML = "";
+                snap.forEach(dSnap => {
+                    const d = dSnap.val();
+                    l.innerHTML += `<div class="card">
+                        ${d.autor === usuario ? `<button class="btn-del" onclick="borrarDato('${t}','${dSnap.key}')">🗑️</button>` : ''}
+                        <b>${d.con}</b> ${d.mon?'($'+d.mon+')':''}<br><small>${d.autor} - ${d.fecha || d.fec}</small>
                     </div>`;
                 });
             });
         };
-        mon('gastos','lista-gas'); mon('educacion','lista-edu'); mon('salud','lista-sal');
+        monitorear('gastos','lista-gas'); monitorear('educacion','lista-edu'); monitorear('salud','lista-sal');
     }
 
     function generarCal() {
-        const grid = document.getElementById('cal-grid'); grid.innerHTML = "";
-        for(let i=1; i<=31; i++) grid.innerHTML += `<div class="cal-day" id="day-${i}"><b>${i}</b></div>`;
-    }
-    function irA(s, btn) {
-        document.querySelectorAll('.section').forEach(x => x.classList.remove('active'));
-        document.querySelectorAll('.nav-tab').forEach(x => x.classList.remove('active'));
-        document.getElementById('sec-'+s).classList.add('active');
-        btn.classList.add('active');
+        const g = document.getElementById('cal-grid'); g.innerHTML = "";
+        for(let i=1; i<=31; i++) g.innerHTML += `<div class="cal-day" id="day-${i}"><b>${i}</b></div>`;
     }
     function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
     function cerrarModales() { document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); }
