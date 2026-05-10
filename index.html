@@ -14,13 +14,13 @@
     </script>
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        :root { --navy: #1A3A5C; --gold: #C8A84B; --cream: #F7F4EE; --border: #DDD8CE; }
+        :root { --navy: #1A3A5C; --gold: #C8A84B; --cream: #F7F4EE; --border: #DDD8CE; --red: #8B1A1A; --amber: #7A4F1A; --grey: #666; }
         body { font-family: -apple-system, sans-serif; background: var(--cream); color: #1c1c1e; }
         #login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #0F2540; }
         .login-card { background: white; padding: 40px; border-radius: 16px; width: 350px; text-align: center; }
         #app { display: none; }
         .topbar { background: var(--navy); color: white; padding: 15px 20px; display: flex; justify-content: space-between; align-items: center; }
-        .nav-tabs { background: white; display: flex; border-bottom: 1px solid #ddd; overflow-x: auto; }
+        .nav-tabs { background: white; display: flex; border-bottom: 1px solid #ddd; overflow-x: auto; position: sticky; top: 0; z-index: 10; }
         .nav-tab { flex: 1; padding: 15px; border: none; background: none; cursor: pointer; font-weight: 600; color: #666; white-space: nowrap; }
         .nav-tab.active { color: var(--navy); border-bottom: 3px solid var(--gold); }
         .main { padding: 20px; max-width: 600px; margin: 0 auto; }
@@ -33,19 +33,21 @@
         .msg.yo { align-self: flex-end; background: var(--navy); color: white; }
         .msg.otro { align-self: flex-start; background: #eee; }
         .chat-input-area { padding: 10px; border-top: 1px solid #ddd; display: flex; gap: 5px; }
-        textarea, input, select { width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ddd; margin-bottom: 10px; }
+        textarea, input, select { width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #ddd; margin-bottom: 10px; font-size: 14px; }
         .modal-overlay { position: fixed; inset:0; background: rgba(0,0,0,0.7); display:none; align-items:center; justify-content:center; z-index:100; }
         .modal { background: white; padding: 25px; border-radius: 15px; width: 90%; max-width: 400px; }
         .btn-main { background: var(--navy); color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; cursor: pointer; font-weight: bold; }
+        .badge-tipo { font-size: 10px; font-weight: bold; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-bottom: 5px; }
     </style>
 </head>
 <body>
 
 <div id="login-screen">
     <div class="login-card">
-        <h2 style="color:var(--navy); margin-bottom:20px;">⚖️ VÍNCULOS</h2>
-        <button class="btn-main" style="margin-bottom:10px" onclick="entrar('madre')">Acceder como Laura García</button>
-        <button class="btn-main" style="background:#4A5568" onclick="entrar('padre')">Acceder como Marcelo Ríos</button>
+        <h2 style="color:var(--navy); margin-bottom:20px; font-family: Georgia;">⚖️ VÍNCULOS</h2>
+        <button class="btn-main" style="margin-bottom:10px" onclick="entrar('madre')">Laura García (Madre)</button>
+        <button class="btn-main" style="background:#4A5568" onclick="entrar('padre')">Marcelo Ríos (Padre)</button>
+        <p style="font-size: 11px; color: #888; margin-top: 15px;">Juzgado de Familia N° 9 - Morón</p>
     </div>
 </div>
 
@@ -78,12 +80,12 @@
         </div>
 
         <div id="sec-salud" class="section">
-            <button class="btn-main" onclick="abrirModal('m-salud')">+ Nueva Novedad Médica</button>
+            <button class="btn-main" onclick="abrirModal('m-salud')">+ Novedad Salud</button>
             <div id="lista-salud" style="margin-top:15px"></div>
         </div>
 
         <div id="sec-educacion" class="section">
-            <button class="btn-main" onclick="abrirModal('m-edu')">+ Información Escolar</button>
+            <button class="btn-main" onclick="abrirModal('m-edu')">+ Info Escuela</button>
             <div id="lista-edu" style="margin-top:15px"></div>
         </div>
     </div>
@@ -91,37 +93,43 @@
 
 <div class="modal-overlay" id="m-ia">
     <div class="modal">
-        <h4 style="color:#8B1A1A">⚠️ Asistente de Tono</h4><br>
+        <h4 style="color:var(--red)">⚠️ Perspectiva de Género</h4><br>
         <div style="background:#f9f9f9; padding:10px; border-radius:5px; font-style:italic; font-size:13px" id="msg-orig"></div><br>
-        <p style="color:#1A6B3A; font-weight:bold">Sugerencia Neutral:</p>
+        <p style="color:#1A6B3A; font-weight:bold; font-size: 13px;">Sugerencia Neutral sugerida:</p>
         <div style="background:#e8f5ee; padding:10px; border-radius:5px; font-size:13px" id="msg-sug"></div><br>
         <button class="btn-main" onclick="enviarFinal('sug')" style="background:#1A6B3A">Usar sugerencia</button>
-        <button onclick="cerrarModales()" style="background:none; border:none; width:100%; margin-top:10px; color:#666">Editar original</button>
+        <button onclick="cerrarModales()" style="background:none; border:none; width:100%; margin-top:10px; color:#666; font-size: 12px;">Editar original</button>
     </div>
 </div>
 
 <div class="modal-overlay" id="m-gasto"><div class="modal">
     <h3>Cargar Gasto</h3><br>
-    <input type="text" id="g-con" placeholder="Concepto (ej: Uniforme)">
+    <label>Clasificación del Gasto</label>
+    <select id="g-tipo">
+        <option value="Extraordinario">🔵 Extraordinario (Genera obligación)</option>
+        <option value="Ordinario">🟡 Ordinario (Informativo)</option>
+        <option value="A determinar">⚪ A determinar por el Juzgado</option>
+    </select>
+    <input type="text" id="g-con" placeholder="Concepto (ej: Materiales Arte)">
     <input type="number" id="g-mon" placeholder="Monto $">
-    <button class="btn-main" onclick="guardarDato('gastos')">Guardar</button>
-    <button onclick="cerrarModales()">Cerrar</button>
+    <button class="btn-main" onclick="guardarDato('gastos')">Cargar en Expediente</button>
+    <button onclick="cerrarModales()" style="background:none; border:none; width:100%; margin-top:10px">Cerrar</button>
 </div></div>
 
 <div class="modal-overlay" id="m-salud"><div class="modal">
-    <h3>Novedad Médica</h3><br>
-    <select id="s-tipo"><option>Consulta Pediátrica</option><option>Vacunas</option><option>Turno Especialista</option></select>
-    <textarea id="s-det" placeholder="Detalles del diagnóstico o turno..."></textarea>
+    <h3>Novedad de Salud</h3><br>
+    <select id="s-tipo"><option>Consulta Médica</option><option>Vacunación</option><option>Informe Psicológico</option></select>
+    <textarea id="s-det" placeholder="Detalle..."></textarea>
     <button class="btn-main" onclick="guardarDato('salud')">Guardar</button>
-    <button onclick="cerrarModales()">Cerrar</button>
+    <button onclick="cerrarModales()" style="background:none; border:none; width:100%; margin-top:10px">Cerrar</button>
 </div></div>
 
 <div class="modal-overlay" id="m-edu"><div class="modal">
-    <h3>Educación</h3><br>
-    <input type="text" id="e-tit" placeholder="Título (ej: Boletín, Reunión)">
-    <textarea id="e-det" placeholder="Detalle de la novedad escolar..."></textarea>
+    <h3>Información Escolar</h3><br>
+    <input type="text" id="e-tit" placeholder="Título (Boletín, Reunión)">
+    <textarea id="e-det" placeholder="Detalle escolar..."></textarea>
     <button class="btn-main" onclick="guardarDato('educacion')">Guardar</button>
-    <button onclick="cerrarModales()">Cerrar</button>
+    <button onclick="cerrarModales()" style="background:none; border:none; width:100%; margin-top:10px">Cerrar</button>
 </div></div>
 
 <script>
@@ -146,10 +154,10 @@
     function procesarMensaje() {
         const txt = document.getElementById('msg-in').value.trim();
         if(!txt) return;
-        const disparadores = ["porque vos", "siempre haces", "estupido", "loco", "loca", "plata", "culpa", "odio"];
+        const disparadores = ["porque vos", "siempre haces", "estupido", "loca", "plata", "culpa", "odio", "carajo"];
         if(disparadores.some(d => txt.toLowerCase().includes(d))) {
             document.getElementById('msg-orig').innerText = `"${txt}"`;
-            document.getElementById('msg-sug').innerText = "Propongo que hablemos sobre este tema enfocándonos en las necesidades del niño/a de forma neutral.";
+            document.getElementById('msg-sug').innerText = "Propongo que mantengamos el diálogo sobre los temas que conciernen al bienestar del niño/a de forma objetiva.";
             document.getElementById('m-ia').style.display = 'flex';
         } else { enviarFinal('orig'); }
     }
@@ -165,7 +173,11 @@
     function guardarDato(tipo) {
         const { db, ref, push } = window._fb;
         let data = { autor: usuario, fecha: new Date().toLocaleDateString() };
-        if(tipo === 'gastos') { data.con = document.getElementById('g-con').value; data.mon = document.getElementById('g-mon').value; }
+        if(tipo === 'gastos') { 
+            data.con = document.getElementById('g-con').value; 
+            data.mon = document.getElementById('g-mon').value;
+            data.clase = document.getElementById('g-tipo').value;
+        }
         if(tipo === 'salud') { data.tipo = document.getElementById('s-tipo').value; data.det = document.getElementById('s-det').value; }
         if(tipo === 'educacion') { data.tit = document.getElementById('e-tit').value; data.det = document.getElementById('e-det').value; }
         
@@ -182,15 +194,26 @@
         });
         onValue(ref(db, `${path}/gastos`), (snap) => {
             const l = document.getElementById('lista-gastos'); l.innerHTML = "";
-            snap.forEach(c => { const g = c.val(); l.innerHTML += `<div class="card"><b>${g.con}</b><br><span style="color:#1A3A5C; font-size:18px">$${g.mon}</span><br><small>${g.autor} - ${g.fecha}</small></div>`; });
+            snap.forEach(c => { 
+                const g = c.val();
+                let color = "#666"; 
+                if(g.clase === "Extraordinario") color = "var(--navy)";
+                if(g.clase === "Ordinario") color = "var(--amber)";
+                l.innerHTML += `<div class="card" style="border-left: 5px solid ${color}">
+                    <span class="badge-tipo" style="color:${color}; background:rgba(0,0,0,0.05)">${g.clase}</span><br>
+                    <b>${g.con}</b><br>
+                    <span style="color:var(--navy); font-size:18px">$${g.mon}</span><br>
+                    <small>${g.autor} - ${g.fecha}</small>
+                </div>`;
+            });
         });
         onValue(ref(db, `${path}/salud`), (snap) => {
             const l = document.getElementById('lista-salud'); l.innerHTML = "";
-            snap.forEach(c => { const s = c.val(); l.innerHTML += `<div class="card"><b>${s.tipo}</b><br>${s.det}<br><small>${s.autor} - ${s.fecha}</small></div>`; });
+            snap.forEach(c => { const s = c.val(); l.innerHTML += `<div class="card" style="border-left: 5px solid #1A6B3A"><b>${s.tipo}</b><br>${s.det}<br><small>${s.autor} - ${s.fecha}</small></div>`; });
         });
         onValue(ref(db, `${path}/educacion`), (snap) => {
             const l = document.getElementById('lista-edu'); l.innerHTML = "";
-            snap.forEach(c => { const e = c.val(); l.innerHTML += `<div class="card"><b>${e.tit}</b><br>${e.det}<br><small>${e.autor} - ${e.fecha}</small></div>`; });
+            snap.forEach(c => { const e = c.val(); l.innerHTML += `<div class="card" style="border-left: 5px solid var(--gold)"><b>${e.tit}</b><br>${e.det}<br><small>${e.autor} - ${e.fecha}</small></div>`; });
         });
     }
     function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
