@@ -2,394 +2,202 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- Configuración para que funcione como App en Android y iPhone -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1A3A5C">
+    
     <title>VÍNCULOS — Gestión Parental</title>
-    <!-- Meta etiquetas para optimizar el código en móviles y evitar errores de búsqueda -->
-<link rel="canonical" href="https://marialaura2025.github.io/v-nculos/" />
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-<script>
-  // Script para forzar la carga del código desde el servidor y evitar caché vieja
-  if (window.location.protocol === 'http:') {
-      window.location.href = window.location.href.replace('http:', 'https:');
-  }
-</script>    <script type="module">
+    <!-- Conexión con el motor de base de datos Firebase -->
+    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-        import { getDatabase, ref, push, onValue, set, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+        import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
         
-        // Configuración de tu base de datos
         const firebaseConfig = { databaseURL: "https://vinculos-app-default-rtdb.firebaseio.com/" };
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        window._fb = { db, ref, push, onValue, set, remove };
+        window._fb = { db, ref, push, onValue };
     </script>
+
     <style>
-        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        :root { --navy: #1A3A5C; --gold: #C8A84B; --cream: #F7F4EE; --red: #B22222; --green: #2E7D32; --blue: #1976D2; --purple: #9c27b0; }
-        body { font-family: -apple-system, sans-serif; background: var(--cream); color: #1c1c1e; }
+        :root { --navy: #1A3A5C; --gold: #C8A84B; --blue: #1976D2; --purple: #9c27b0; --cream: #F7F4EE; }
+        body { font-family: -apple-system, system-ui, sans-serif; margin: 0; background: var(--cream); color: #333; -webkit-tap-highlight-color: transparent; }
         
-        /* Pantalla de Login */
-        #login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: #0F2540; padding: 20px; }
-        .login-card { background: white; padding: 30px; border-radius: 16px; width: 100%; max-width: 400px; text-align: center; }
-        .btn-role { width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 8px; border: 1.5px solid #ddd; cursor: pointer; font-weight: bold; background: white; }
+        /* Interfaz de Navegación */
+        .header { background: var(--navy); color: white; padding: 20px; text-align: center; font-weight: bold; border-bottom: 3px solid var(--gold); }
+        .nav { display: flex; background: white; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .nav-btn { flex: 1; padding: 15px 5px; border: none; background: none; font-weight: bold; color: #666; font-size: 10px; text-transform: uppercase; cursor: pointer; }
+        .nav-btn.active { color: var(--navy); border-bottom: 4px solid var(--gold); }
         
-        /* Estructura Principal */
-        #app { display: none; }
-        .topbar { background: var(--navy); color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 1000; }
-        .nav-tabs { background: white; display: flex; border-bottom: 1px solid #ddd; position: sticky; top: 44px; z-index: 900; overflow-x: auto; }
-        .nav-tab { flex: 1; padding: 15px 5px; border: none; background: none; cursor: pointer; font-weight: 600; color: #666; font-size: 10px; text-transform: uppercase; min-width: 70px; }
-        .nav-tab.active { color: var(--navy); border-bottom: 3px solid var(--gold); }
-        
-        .main { padding: 15px; max-width: 600px; margin: 0 auto; padding-bottom: 80px; }
-        .section { display: none; }
+        .section { display: none; padding: 15px; animation: fadeIn 0.3s; }
         .section.active { display: block; }
-        
-        /* Componentes */
-        .card { background: white; padding: 15px; border-radius: 12px; border: 1px solid #ddd; margin-bottom: 12px; position: relative; }
-        .btn-main { background: var(--navy); color: white; border: none; padding: 12px; border-radius: 8px; width: 100%; cursor: pointer; font-weight: bold; margin-top: 10px; }
-        .btn-logout { background: none; border: 1px solid white; color: white; font-size: 10px; padding: 4px 8px; border-radius: 4px; cursor: pointer; }
-        
-        /* Chat */
-        #chat-box { height: 400px; overflow-y: auto; border: 1px solid #ddd; background: #f9f9f9; padding: 15px; border-radius: 10px; display: flex; flex-direction: column; gap: 10px; }
-        .msg { padding: 10px; border-radius: 12px; font-size: 13px; max-width: 85%; line-height: 1.4; }
-        .msg.yo { align-self: flex-end; background: var(--navy); color: white; border-bottom-right-radius: 2px; }
-        .msg.otro { align-self: flex-start; background: white; color: black; border: 1px solid #ddd; border-bottom-left-radius: 2px; }
-        
-        /* Agenda */
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 1px; background: #ddd; border: 1px solid #ddd; margin-top: 10px; }
-        .cal-day { background: white; min-height: 80px; padding: 5px; font-size: 10px; position: relative; }
-        .cal-event { font-size: 8px; padding: 2px 4px; border-radius: 3px; color: white; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        
-        /* Modales */
-        .modal-overlay { position: fixed; inset:0; background: rgba(0,0,0,0.8); display:none; align-items:center; justify-content:center; z-index:2000; padding: 20px; }
-        .modal { background: white; padding: 25px; border-radius: 16px; width: 100%; max-width: 400px; }
-        input, textarea, select { width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #ddd; margin-top: 10px; font-size: 14px; }
-        .btn-del { font-size: 10px; color: var(--red); background: none; border: none; cursor: pointer; float: right; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Estilo del Chat */
+        #chat-display { height: 350px; overflow-y: auto; background: white; border: 1px solid #ddd; border-radius: 12px; padding: 15px; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; }
+        .bubble { padding: 10px; border-radius: 12px; max-width: 80%; font-size: 14px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .bubble.yo { align-self: flex-end; background: var(--navy); color: white; border-bottom-right-radius: 2px; }
+        .bubble.otro { align-self: flex-start; background: #e9e9eb; color: black; border-bottom-left-radius: 2px; }
+
+        /* Estilo de la Agenda */
+        .grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; background: #ddd; border: 1px solid #ddd; }
+        .day { background: white; min-height: 80px; padding: 5px; font-size: 10px; }
+        .ev { font-size: 8px; padding: 2px; border-radius: 2px; color: white; margin-top: 2px; line-height: 1.1; }
+
+        /* Formularios */
+        .card { background: white; padding: 15px; border-radius: 12px; border: 1px solid #ddd; margin-bottom: 10px; }
+        input, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
+        .btn-main { background: var(--navy); color: white; border: none; padding: 15px; border-radius: 8px; width: 100%; font-weight: bold; cursor: pointer; }
     </style>
 </head>
 <body>
 
-<audio id="notif-sound" src="https://assets.mixkit.co/active_storage/sfx/2358/2358-preview.mp3"></audio>
+<div class="header">⚖️ VÍNCULOS</div>
 
-<!-- PANTALLA DE ACCESO -->
-<div id="login-screen">
-    <div class="login-card">
-        <h2 style="color:var(--navy)">⚖️ VÍNCULOS</h2>
-        <p style="font-size:11px; color:#888; margin-bottom:20px">Gestión Parental Co-Responsable</p>
-        <button class="btn-role" onclick="entrar('madre')">👩 Laura García (Madre)</button>
-        <button class="btn-role" onclick="entrar('padre')">👨 Marcelo Ríos (Padre)</button>
-        <button class="btn-role" onclick="abrirModal('m-lawyer')" style="border-color:#aaa">💼 Abogados</button>
-        <button class="btn-role" onclick="entrar('juez')" style="background:var(--navy); color:white">🏛️ Juzgado de Familia</button>
+<nav class="nav">
+    <button class="nav-btn active" onclick="tab('chat', this)">💬 Chat</button>
+    <button class="nav-tab nav-btn" onclick="tab('age', this)">📅 Agenda</button>
+    <button class="nav-tab nav-btn" onclick="tab('edu', this)">🏫 Escuela</button>
+    <button class="nav-tab nav-btn" onclick="tab('sal', this)">🏥 Salud</button>
+</nav>
+
+<main>
+    <!-- SECCIÓN CHAT -->
+    <div id="sec-chat" class="section active">
+        <div id="chat-display"></div>
+        <textarea id="chat-input" placeholder="Escribe un mensaje constructivo..."></textarea>
+        <button class="btn-main" onclick="enviarMensaje()">Enviar Mensaje</button>
     </div>
-</div>
 
-<!-- APLICACIÓN PRINCIPAL -->
-<div id="app">
-    <div class="topbar">
-        <span>VÍNCULOS</span>
-        <div>
-            <small id="user-display" style="margin-right:10px"></small>
-            <button class="btn-logout" onclick="window.location.reload()">Salir</button>
+    <!-- SECCIÓN AGENDA -->
+    <div id="sec-age" class="section">
+        <h3 style="text-align: center;">Mayo 2026</h3>
+        <div class="grid" id="calendar-grid"></div>
+        <div style="margin-top:10px; font-size:10px;">🔵 Escuela | 🟣 Salud</div>
+    </div>
+
+    <!-- SECCIÓN ESCUELA -->
+    <div id="sec-edu" class="section">
+        <div class="card">
+            <h3>🏫 Registro Escolar</h3>
+            <input type="text" id="edu-titulo" placeholder="Ej: Reunión de padres">
+            <input type="date" id="edu-fecha">
+            <button class="btn-main" onclick="guardarEvento('educacion')">Cargar a Escuela</button>
         </div>
     </div>
-    
-    <div class="nav-tabs">
-        <button class="nav-tab active" onclick="irA('chat', this)">💬 Chat</button>
-        <button class="nav-tab" onclick="irA('age', this)">📅 Agenda</button>
-        <button class="nav-tab" onclick="irA('gas', this)">💸 Gastos</button>
-        <button class="nav-tab" onclick="irA('edu', this)">🏫 Escuela</button>
-        <button class="nav-tab" onclick="irA('sal', this)">🏥 Salud</button>
-    </div>
 
-    <div class="main">
-        <!-- SECCIÓN CHAT -->
-        <div id="sec-chat" class="section active">
-            <div id="audit-ui" style="display:none; font-size:11px; color:var(--red); padding: 10px; background: #ffeaea; border-radius: 8px; margin-bottom:10px">
-                🛡️ Protocolo IA: <span id="incident-val">0</span> mensajes intervenidos
-            </div>
-            <div id="chat-box"></div>
-            <div id="input-area" style="margin-top:10px">
-                <textarea id="msg-in" placeholder="Escribe un mensaje..."></textarea>
-                <button onclick="procesarIA()" class="btn-main">Enviar Mensaje</button>
-            </div>
-        </div>
-
-        <!-- SECCIÓN AGENDA -->
-        <div id="sec-age" class="section">
-            <h4 id="mes-titulo">Mayo 2026</h4>
-            <div class="cal-grid" id="cal-grid"></div>
-            <p style="font-size:10px; margin-top:10px">🔵 Escuela | 🟣 Salud | 🟢 Acuerdo | 🔴 Incidencia</p>
-            <button class="btn-main" onclick="abrirModal('m-incidencia')" style="background:var(--red)">Registrar Incumplimiento</button>
-        </div>
-
-        <!-- SECCIONES GESTIÓN -->
-        <div id="sec-gas" class="section">
-            <h3>💸 Gastos Compartidos</h3>
-            <button class="btn-main" onclick="abrirModal('m-gasto')">+ Cargar Comprobante</button>
-            <div id="lista-gas" style="margin-top:15px"></div>
-        </div>
-
-        <div id="sec-edu" class="section">
-            <h3>🏫 Escuela y Educación</h3>
-            <button class="btn-main" onclick="abrirModal('m-edu')">+ Cargar Nota/Reunión</button>
-            <div id="lista-edu" style="margin-top:15px"></div>
-        </div>
-
-        <div id="sec-sal" class="section">
-            <h3>🏥 Salud y Pediatría</h3>
-            <button class="btn-main" onclick="abrirModal('m-sal')">+ Cargar Turno/Receta</button>
-            <div id="lista-sal" style="margin-top:15px"></div>
+    <!-- SECCIÓN SALUD -->
+    <div id="sec-sal" class="section">
+        <div class="card">
+            <h3>🏥 Registro Médico</h3>
+            <input type="text" id="sal-titulo" placeholder="Ej: Turno Pediatra">
+            <input type="date" id="sal-fecha">
+            <button class="btn-main" onclick="guardarEvento('salud')">Cargar a Salud</button>
         </div>
     </div>
-</div>
-
-<!-- MODALES (VENTANAS EMERGENTES) -->
-<div class="modal-overlay" id="m-ia">
-    <div class="modal">
-        <h4 style="color:var(--red)">Sugerencia de la IA</h4>
-        <p style="font-size: 12px; margin: 10px 0;">Se detectó un tono que podría generar conflicto. Para mantener la comunicación enfocada en los niños, sugerimos enviar:</p>
-        <div id="ia-sug" style="background:#f0f0f0; padding:15px; border-radius:8px; font-style:italic; margin-bottom:15px"></div>
-        <button class="btn-main" onclick="enviarFinal(true)">Enviar Sugerencia</button>
-        <button class="btn-main" style="background:#888" onclick="cerrarModales()">Corregir manualmente</button>
-    </div>
-</div>
-
-<div class="modal-overlay" id="m-lawyer">
-    <div class="modal">
-        <h3>Acceso Letrados</h3>
-        <button class="btn-role" onclick="entrar('abogado_madre')">Dr. Abogado (Laura G.)</button>
-        <button class="btn-role" onclick="entrar('abogado_padre')">Dra. Abogado (Marcelo R.)</button>
-        <button class="btn-main" style="background:#888" onclick="cerrarModales()">Volver</button>
-    </div>
-</div>
-
-<div class="modal-overlay" id="m-gasto">
-    <div class="modal">
-        <h3>Cargar Gasto</h3>
-        <input id="g-con" placeholder="Concepto (ej: Zapatillas)">
-        <input type="number" id="g-mon" placeholder="$ Monto">
-        <label style="font-size:10px; margin-top:10px; display:block;">Adjuntar ticket (PDF/Foto):</label>
-        <input type="file" id="g-adj">
-        <button class="btn-main" onclick="guardar('gastos')">Guardar Gasto</button>
-    </div>
-</div>
-
-<div class="modal-overlay" id="m-edu">
-    <div class="modal">
-        <h3>Información Escolar</h3>
-        <input id="e-con" placeholder="Evento (ej: Reunión de padres)">
-        <input type="date" id="e-fec">
-        <label style="font-size:10px; margin-top:10px; display:block;">Adjuntar Boletín/Nota:</label>
-        <input type="file" id="e-adj">
-        <button class="btn-main" onclick="guardar('educacion')">Guardar en Escuela</button>
-    </div>
-</div>
-
-<div class="modal-overlay" id="m-sal">
-    <div class="modal">
-        <h3>Información Médica</h3>
-        <input id="s-con" placeholder="Consulta (ej: Turno Dentista)">
-        <input type="date" id="s-fec">
-        <label style="font-size:10px; margin-top:10px; display:block;">Adjuntar Receta/Certificado:</label>
-        <input type="file" id="s-adj">
-        <button class="btn-main" onclick="guardar('salud')">Guardar en Salud</button>
-    </div>
-</div>
-
-<div class="modal-overlay" id="m-incidencia">
-    <div class="modal">
-        <h3>Incidencia de Régimen</h3>
-        <input type="date" id="i-fec">
-        <select id="i-tipo">
-            <option value="incumplimiento">Incumplimiento (Rojo)</option>
-            <option value="acuerdo">Cambio por Acuerdo (Verde)</option>
-        </select>
-        <textarea id="i-obs" placeholder="Detalles de la situación..."></textarea>
-        <button class="btn-main" onclick="guardarIncidencia()">Registrar en Agenda</button>
-    </div>
-</div>
+</main>
 
 <script>
-    let usuario = ""; let rolActual = ""; let lastMsgCount = 0;
-    const path = "expedientes/FAM-1847";
-    const PALABRAS_FILTRO = ["culpa","odio","siempre","nunca","plata","malo","peor","irresponsable"];
+    let usuarioActivo = "Laura G."; // Simulación de usuario
+    const DB_PATH = "expedientes/FAM-1847";
 
-    // Función para ingresar a la app
-    function entrar(rol) {
-        rolActual = rol; 
-        cerrarModales();
-        usuario = rol.includes('madre') ? "Laura G." : (rol.includes('padre') ? "Marcelo R." : "Juzgado");
-        document.getElementById('user-display').innerText = usuario;
-        document.getElementById('login-screen').style.display = 'none';
-        document.getElementById('app').style.display = 'block';
-        
-        if(rol==='juez' || rol.includes('abogado')) {
-            document.getElementById('input-area').style.display = 'none';
-            document.getElementById('audit-ui').style.display = 'block';
-        }
-        generarCal(); 
-        conectar();
-    }
-
-    // Navegación entre pestañas
-    function irA(sec, btn) {
+    // Navegación entre pestañas (Lógica de interfaz)
+    function tab(nombre, boton) {
         document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-        document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
-        document.getElementById('sec-' + sec).classList.add('active');
-        btn.classList.add('active');
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('sec-' + nombre).classList.add('active');
+        boton.classList.add('active');
     }
 
-    // Lógica de Inteligencia Artificial
-    function procesarIA() {
-        const t = document.getElementById('msg-in').value;
-        if(t.trim() === "") return;
-        
-        const tienePalabrasClave = PALABRAS_FILTRO.some(w => t.toLowerCase().includes(w));
-        
-        if(tienePalabrasClave) {
-            document.getElementById('ia-sug').innerText = "Mantengamos el foco en la organización de los hijos y el bienestar familiar.";
-            document.getElementById('m-ia').style.display = 'flex';
-        } else { 
-            enviarFinal(false); 
-        }
-    }
+    // Lógica de Inteligencia Artificial y Envío de Chat
+    function enviarMensaje() {
+        const input = document.getElementById('chat-input');
+        const textoOriginal = input.value.trim();
+        if(!textoOriginal) return;
 
-    function enviarFinal(ia) {
+        // Diccionario de términos conflictivos (Filtro de IA)
+        const palabrasBloqueadas = ["odio", "culpa", "siempre", "nunca", "malo", "plata"];
+        const esConflictivo = palabrasBloqueadas.some(p => textoOriginal.toLowerCase().includes(p));
+        
+        // Si hay conflicto, la IA genera un mensaje neutro
+        const textoParaMostrar = esConflictivo 
+            ? "Mensaje procesado: Se solicita mantener la comunicación enfocada en el bienestar de los hijos." 
+            : textoOriginal;
+
         const { db, ref, push } = window._fb;
-        const msgOriginal = document.getElementById('msg-in').value;
-        
-        push(ref(db, `${path}/chat`), { 
-            autor: usuario, 
-            txt: ia ? document.getElementById('ia-sug').innerText : msgOriginal, 
-            esIA: ia, 
-            original: ia ? msgOriginal : "", 
-            time: Date.now() 
+        push(ref(db, DB_PATH + "/chat"), {
+            autor: usuarioActivo,
+            texto: textoParaMostrar,
+            originalParaJuez: esConflictivo ? textoOriginal : "",
+            esAuditado: esConflictivo,
+            fecha: Date.now()
         });
-        
-        document.getElementById('msg-in').value = ""; 
-        cerrarModales();
+        input.value = "";
     }
 
-    // Guardado General (Gastos, Escuela, Salud)
-    function guardar(tipo) {
+    // Lógica de Agenda: Guarda y asigna colores automáticamente
+    function guardarEvento(categoria) {
+        const titulo = document.getElementById(categoria === 'educacion' ? 'edu-titulo' : 'sal-titulo').value;
+        const fechaRaw = document.getElementById(categoria === 'educacion' ? 'edu-fecha' : 'sal-fecha').value;
+        
+        if(!titulo || !fechaRaw) return alert("Por favor, completa todos los campos.");
+
+        const diaDelMes = parseInt(fechaRaw.split('-')[2]);
+        const colorAsignado = categoria === 'educacion' ? 'var(--blue)' : 'var(--purple)';
+
         const { db, ref, push } = window._fb;
-        let d = { autor: usuario, time: Date.now(), fecha: new Date().toLocaleDateString() };
-        
-        if(tipo==='gastos') {
-            d.con = document.getElementById('g-con').value;
-            d.mon = document.getElementById('g-mon').value;
-        } else {
-            const idF = tipo==='educacion'?'e-fec':'s-fec';
-            const idC = tipo==='educacion'?'e-con':'s-con';
-            d.con = document.getElementById(idC).value;
-            d.fec = document.getElementById(idF).value;
-            
-            // Si tiene fecha, lo enviamos a la agenda con el color correspondiente
-            if(d.fec) {
-                const dia = parseInt(d.fec.split('-')[2]);
-                push(ref(db, `${path}/agenda`), { 
-                    dia, 
-                    obs: d.con, 
-                    tipo: tipo === 'educacion' ? 'escuela' : 'salud' 
-                });
-            }
-        }
-        push(ref(db, `${path}/${tipo}`), d); 
-        cerrarModales();
-    }
-
-    function guardarIncidencia() {
-        const dia = parseInt(document.getElementById('i-fec').value.split('-')[2]);
-        const tipo = document.getElementById('i-tipo').value;
-        const obs = document.getElementById('i-obs').value;
-        
-        window._fb.push(window._fb.ref(window._fb.db, `${path}/agenda`), { 
-            dia, 
-            tipo: tipo, 
-            obs: obs, 
-            autor: usuario 
+        push(ref(db, DB_PATH + "/agenda"), {
+            dia: diaDelMes,
+            titulo: titulo,
+            color: colorAsignado,
+            tipo: categoria
         });
-        cerrarModales();
+
+        alert("Evento registrado y marcado en la agenda.");
+        tab('age', document.querySelectorAll('.nav-btn')[1]);
     }
 
-    // Sincronización en tiempo real con Firebase
-    function conectar() {
+    // Conexión en tiempo real con Firebase (Sincronización)
+    function iniciarSincronizacion() {
         const { db, ref, onValue } = window._fb;
-        
-        // Cargar Chat
-        onValue(ref(db, `${path}/chat`), snap => {
-            const box = document.getElementById('chat-box'); box.innerHTML = "";
-            let c = 0; let total = 0;
-            snap.forEach(mSnap => {
-                const m = mSnap.val(); total++;
-                if(m.esIA) c++;
-                const yo = m.autor === usuario;
-                
-                let textoMostrar = m.txt;
-                // Si el juzgado o abogado mira, y hubo IA, mostrar advertencia
-                let html = `<div class="msg ${yo?'yo':'otro'}"><b>${m.autor}</b><br>${textoMostrar}`;
-                if(m.esIA && (rolActual==='juez' || rolActual.includes('abogado'))) {
-                    html += `<br><small style="color:red; font-weight:bold; background:white; padding:2px">ORIGINAL: ${m.original}</small>`;
-                }
-                box.innerHTML += html + `</div>`;
+
+        // Escuchar el Chat
+        onValue(ref(db, DB_PATH + "/chat"), snap => {
+            const display = document.getElementById('chat-display');
+            display.innerHTML = "";
+            snap.forEach(child => {
+                const m = child.val();
+                const clase = m.autor === usuarioActivo ? 'yo' : 'otro';
+                display.innerHTML += `<div class="bubble ${clase}"><b>${m.autor}</b><br>${m.texto}</div>`;
             });
-            if(total > lastMsgCount && lastMsgCount !== 0) { document.getElementById('notif-sound').play(); }
-            lastMsgCount = total;
-            document.getElementById('incident-val').innerText = c;
-            box.scrollTop = box.scrollHeight;
+            display.scrollTop = display.scrollHeight;
         });
 
-        // Cargar Agenda
-        onValue(ref(db, `${path}/agenda`), snap => {
-            document.querySelectorAll('.cal-event').forEach(e => e.remove());
-            snap.forEach(eSnap => {
-                const e = eSnap.val(); 
-                const d = document.getElementById('day-'+e.dia);
-                if(d) {
-                    let col = 'var(--blue)'; // Por defecto escuela
-                    if(e.tipo==='salud') col = 'var(--purple)';
-                    if(e.tipo==='acuerdo') col = 'var(--green)';
-                    if(e.tipo==='incumplimiento') col = 'var(--red)';
-                    
-                    d.innerHTML += `<div class="cal-event" style="background:${col}" title="${e.obs}">${e.obs}</div>`;
+        // Escuchar la Agenda
+        onValue(ref(db, DB_PATH + "/agenda"), snap => {
+            // Limpiar eventos previos antes de re-dibujar
+            document.querySelectorAll('.ev').forEach(e => e.remove());
+            snap.forEach(child => {
+                const ev = child.val();
+                const celda = document.getElementById('dia-' + ev.dia);
+                if(celda) {
+                    celda.innerHTML += `<div class="ev" style="background:${ev.color}">${ev.titulo}</div>`;
                 }
             });
         });
-
-        // Monitorear secciones de datos
-        const monitorear = (t, listId) => {
-            onValue(ref(db, `${path}/${t}`), snap => {
-                const l = document.getElementById(listId); l.innerHTML = "";
-                snap.forEach(dSnap => {
-                    const d = dSnap.val();
-                    l.innerHTML += `<div class="card">
-                        ${d.autor === usuario ? `<button class="btn-del" onclick="borrarDato('${t}','${dSnap.key}')">🗑️ Borrar</button>` : ''}
-                        <b>${d.con}</b> ${d.mon?'($'+d.mon+')':''}<br>
-                        <small>${d.autor} - ${d.fecha || d.fec}</small>
-                        <div style="font-size:9px; color:blue; margin-top:5px">📎 Documento adjunto</div>
-                    </div>`;
-                });
-            });
-        };
-        monitorear('gastos','lista-gas'); 
-        monitorear('educacion','lista-edu'); 
-        monitorear('salud','lista-sal');
     }
 
-    function borrarDato(tipo, id) {
-        if(confirm("¿Seguro que quieres eliminar este registro?")) { 
-            window._fb.remove(window._fb.ref(window._fb.db, `${path}/${tipo}/${id}`)); 
-        }
+    // Generar el calendario visual inicial
+    const calendarioGrid = document.getElementById('calendar-grid');
+    for(let i=1; i<=31; i++) {
+        calendarioGrid.innerHTML += `<div class="day" id="dia-${i}"><b>${i}</b></div>`;
     }
 
-    function generarCal() {
-        const g = document.getElementById('cal-grid'); g.innerHTML = "";
-        for(let i=1; i<=31; i++) g.innerHTML += `<div class="cal-day" id="day-${i}"><b>${i}</b></div>`;
-    }
-
-    function abrirModal(id) { document.getElementById(id).style.display = 'flex'; }
-    function cerrarModales() { document.querySelectorAll('.modal-overlay').forEach(m => m.style.display = 'none'); }
+    iniciarSincronizacion();
 </script>
 </body>
 </html>
