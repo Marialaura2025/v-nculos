@@ -4,7 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VÍNCULOS — Gestión Parental</title>
-    <script type="module">
+    <!-- Meta etiquetas para optimizar el código en móviles y evitar errores de búsqueda -->
+<link rel="canonical" href="https://marialaura2025.github.io/v-nculos/" />
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<script>
+  // Script para forzar la carga del código desde el servidor y evitar caché vieja
+  if (window.location.protocol === 'http:') {
+      window.location.href = window.location.href.replace('http:', 'https:');
+  }
+</script>    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { getDatabase, ref, push, onValue, set, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
         
