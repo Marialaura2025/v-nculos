@@ -326,9 +326,21 @@
             });
             if(total > lastMsgCount && lastMsgCount !== 0) { document.getElementById('notif-sound').play(); }
             lastMsgCount = total;
-            document.getElementById('incident-val').innerText = c;
-            box.scrollTop = box.scrollHeight;
-        });
+            // Verificamos si el usuario NO está en la pestaña de chat
+    const seccionActiva = document.querySelector('.section.active').id;
+    if (seccionActiva !== 'sec-chat') {
+        // Seleccionamos el botón de chat mediante su función onclick
+        const btnChat = document.querySelector('button[onclick*="chat"]');
+        if (btnChat) {
+            btnChat.style.position = 'relative';
+            // Inyectamos el círculo rojo pequeño
+            btnChat.innerHTML = `💬 Chat <span style="position:absolute; top:2px; right:2px; background:red; border-radius:50%; width:8px; height:8px;"></span>`;
+        }
+    }
+}
+lastMsgCount = total;
+document.getElementById('incident-val').innerText = c;
+box.scrollTop = box.scrollHeight;        });
 
         // Cargar Agenda
         onValue(ref(db, `${path}/agenda`), snap => {
