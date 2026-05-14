@@ -4,10 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VÍNCULOS — Gestión Parental</title>
-    <!-- Configuración para que sea una App (PWA) -->
-    <link rel="manifest" href="data:application/manifest+json,{'name':'VinculosApp','short_name':'Vinculos','start_url':'.','display':'standalone','background_color':'#1A3A5C','theme_color':'#1A3A5C','icons':[{'src':'https://via.placeholder.com/192','sizes':'192x192','type':'image/png'}]}">
-    <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-title" content="Vínculos">    <script type="module">
+    <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
         import { getDatabase, ref, push, onValue, set, remove } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
         
@@ -329,21 +326,9 @@
             });
             if(total > lastMsgCount && lastMsgCount !== 0) { document.getElementById('notif-sound').play(); }
             lastMsgCount = total;
-            // Verificamos si el usuario NO está en la pestaña de chat
-    const seccionActiva = document.querySelector('.section.active').id;
-    if (seccionActiva !== 'sec-chat') {
-        // Seleccionamos el botón de chat mediante su función onclick
-        const btnChat = document.querySelector('button[onclick*="chat"]');
-        if (btnChat) {
-            btnChat.style.position = 'relative';
-            // Inyectamos el círculo rojo pequeño
-            btnChat.innerHTML = `💬 Chat <span style="position:absolute; top:2px; right:2px; background:red; border-radius:50%; width:8px; height:8px;"></span>`;
-        }
-    }
-}
-lastMsgCount = total;
-document.getElementById('incident-val').innerText = c;
-box.scrollTop = box.scrollHeight;        });
+            document.getElementById('incident-val').innerText = c;
+            box.scrollTop = box.scrollHeight;
+        });
 
         // Cargar Agenda
         onValue(ref(db, `${path}/agenda`), snap => {
